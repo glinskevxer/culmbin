@@ -20,6 +20,7 @@ from culmbin.model.enums import (
     KilnPhase,
     LegKind,
     MaltStyle,
+    Material,
     PieceStage,
     RejectionReason,
     ShipmentState,
@@ -37,6 +38,7 @@ ENUMS = [
     KilnPhase,
     LegKind,
     MaltStyle,
+    Material,
     PieceStage,
     RejectionReason,
     ShipmentState,
@@ -152,6 +154,11 @@ def test_a_cancelled_contract_is_not_a_closed_one() -> None:
 
 def test_the_styles_are_what_the_kiln_is_set_up_for() -> None:
     assert {style.value for style in MaltStyle} == {"lager", "pale_ale", "distilling", "vienna"}
+
+
+def test_a_material_is_barley_or_malt() -> None:
+    """There is no third material, so a clause that names neither is incomplete."""
+    assert set(Material) == {Material.BARLEY, Material.MALT}
 
 
 def test_habit_is_spring_or_winter() -> None:

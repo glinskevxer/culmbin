@@ -28,6 +28,20 @@ class Basis(StrEnum):
 
 
 @unique
+class Material(StrEnum):
+    """Barley or malt.
+
+    The same word means different things either side of the kiln. Moisture on
+    barley is around twelve percent and on malt around four, and a
+    specification clause that does not say which material it is about will
+    eventually be read against the wrong one.
+    """
+
+    BARLEY = "barley"
+    MALT = "malt"
+
+
+@unique
 class Habit(StrEnum):
     """Spring or winter barley.
 
