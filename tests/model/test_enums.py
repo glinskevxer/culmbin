@@ -11,6 +11,7 @@ import pytest
 
 from culmbin.model.enums import (
     STAGE_ORDER,
+    Approval,
     Basis,
     BinState,
     Conformance,
@@ -23,12 +24,14 @@ from culmbin.model.enums import (
     Material,
     PieceStage,
     RejectionReason,
+    Role,
     ShipmentState,
     VesselKind,
     stage_follows,
 )
 
 ENUMS = [
+    Approval,
     Basis,
     BinState,
     Conformance,
@@ -41,6 +44,7 @@ ENUMS = [
     Material,
     PieceStage,
     RejectionReason,
+    Role,
     ShipmentState,
     VesselKind,
 ]
@@ -159,6 +163,15 @@ def test_the_styles_are_what_the_kiln_is_set_up_for() -> None:
 def test_a_material_is_barley_or_malt() -> None:
     """There is no third material, so a clause that names neither is incomplete."""
     assert set(Material) == {Material.BARLEY, Material.MALT}
+
+
+def test_one_company_can_hold_more_than_one_role() -> None:
+    """Roles are separate rows rather than a set, so they do not overlap here."""
+    assert len(set(Role)) == 4
+
+
+def test_provisional_is_on_the_list_and_not_approved() -> None:
+    assert Approval.PROVISIONAL not in (Approval.APPROVED, Approval.WITHDRAWN)
 
 
 def test_habit_is_spring_or_winter() -> None:

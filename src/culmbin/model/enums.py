@@ -86,6 +86,37 @@ class RejectionReason(StrEnum):
 
 
 @unique
+class Role(StrEnum):
+    """What somebody in the book is to us.
+
+    One company can be two of these. A merchant that also runs a farm is a
+    grower and a merchant, and they are two rows because the contracts, the
+    settlement terms and the person who answers the telephone are different.
+    """
+
+    GROWER = "grower"
+    MERCHANT = "merchant"
+    CUSTOMER = "customer"
+    HAULIER = "haulier"
+
+
+@unique
+class Approval(StrEnum):
+    """How far a barley variety has got on the approved list.
+
+    A variety under test can be malted and sold, but not against a contract
+    that names the approved list, which most of them do. Provisional is the
+    one that catches people out: it is on the list and it is not fully
+    approved, and whether that serves a contract depends on the contract.
+    """
+
+    APPROVED = "approved"
+    PROVISIONAL = "provisional"
+    UNDER_TEST = "under_test"
+    WITHDRAWN = "withdrawn"
+
+
+@unique
 class VesselKind(StrEnum):
     """The four kinds of thing a piece of malt can be sitting in."""
 
