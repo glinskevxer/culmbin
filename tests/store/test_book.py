@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from culmbin.errors import ConflictError, NotFoundError, StateError
-from culmbin.store.book import MEMORY, Book
+from culmbin.store.book import MEMORY, Book, split_statements
 
 
 @pytest.fixture
@@ -178,3 +178,56 @@ def test_a_backup_is_the_same_book(book: Book, tmp_path: Path) -> None:
 
 def test_the_connection_is_reachable_for_the_few_that_need_it(book: Book) -> None:
     assert isinstance(book.connection, sqlite3.Connection)
+
+
+def test_a_script_splits_into_its_statements() -> None:
+    statements = split_statements("CREATE TABLE a (x TEXT);\nCREATE TABLE b (y TEXT);\n")
+    assert len(statements) == 2
+    assert statements[0].startswith("CREATE TABLE a")
+
+
+def test_a_semicolon_inside_a_string_does_not_split() -> None:
+    statements = split_statements("INSERT INTO a VALUES ('one; two');\n")
+    assert len(statements) == 1
+
+
+def test_a_trigger_body_does_not_split() -> None:
+    """A split on semicolons gets this wrong and `complete_statement` does not."""
+    script = (
+        "CREATE TRIGGER t AFTER INSERT ON a BEGIN\n"
+        "  UPDATE a SET x = 'seen';\n"
+        "  UPDATE a SET x = 'twice';\n"
+        "END;\n"
+    )
+    assert len(split_statements(script)) == 1
+
+
+def test_a_last_statement_with_no_semicolon_is_still_a_statement() -> None:
+    assert split_statements("CREATE TABLE a (x TEXT)") == ("CREATE TABLE a (x TEXT)",)
+
+
+def test_two_statements_on_one_line_are_two_statements() -> None:
+    statements = split_statements("CREATE TABLE a (x TEXT); CREATE TABLE b (y TEXT);")
+    assert len(statements) == 2
+
+
+def test_a_script_that_stops_inside_a_string_is_refused() -> None:
+    with pytest.raises(StateError, match="middle of a statement"):
+        split_statements("INSERT INTO a VALUES ('unclosed")
+
+
+def test_an_empty_script_has_no_statements() -> None:
+    assert split_statements("   \n") == ()
+
+
+def test_ddl_in_a_block_that_raises_is_rolled_back(book: Book) -> None:
+    """This is what `Connection.executescript` would have quietly committed."""
+
+    def make_a_table_then_fail() -> None:
+        with book.writing() as writing:
+            writing.executescript("CREATE TABLE later (x TEXT);")
+            raise RuntimeError("the migration was wrong")
+
+    with pytest.raises(RuntimeError):
+        make_a_table_then_fail()
+    assert "later" not in book.tables()

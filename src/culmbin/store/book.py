@@ -14,6 +14,13 @@ have that failure in it.
 **Foreign keys are on.** SQLite has them off by default, per connection,
 every time. A book opened without that pragma will happily delete a delivery
 that a piece is built out of.
+
+**Scripts are split and run statement by statement.** Python's
+`Connection.executescript` commits any open transaction before it starts.
+That is documented and it is still a trap, because it means a migration
+running inside a `writing` block ends the transaction under the caller and
+the eventual `COMMIT` fails with no transaction active. Splitting the script
+here keeps a migration atomic, which is the one place it has to be.
 """
 
 from __future__ import annotations
@@ -107,9 +114,16 @@ class Book:
             raise _translate(exc) from exc
 
     def executescript(self, sql: str) -> None:
-        """Run a whole script, which is what a migration is."""
+        """Run a whole script, one statement at a time.
+
+        This is deliberately not `Connection.executescript`, which commits
+        whatever transaction is open before it runs anything. A migration
+        that did that would not be atomic, and the failure it produces is a
+        commit error a long way from the cause.
+        """
         self._check_open()
-        self._connection.executescript(sql)
+        for statement in split_statements(sql):
+            self.execute(statement)
 
     def query(self, sql: str, params: Params = ()) -> list[sqlite3.Row]:
         """Every row a statement selects."""
@@ -190,6 +204,34 @@ class Book:
         with sqlite3.connect(str(path)) as target:
             self._connection.backup(target)
         target.close()
+
+
+def split_statements(script: str) -> tuple[str, ...]:
+    """Split a script into complete statements.
+
+    `sqlite3.complete_statement` is the same check the command line shell
+    uses, so it gets strings, comments and trigger bodies right, which a
+    plain split on semicolons does not. The split is still on semicolons,
+    because that is where a statement can end, but a piece is only taken as
+    a statement once SQLite agrees it is one.
+
+    A last statement with no semicolon after it is allowed, because that is
+    how everybody writes a one line script.
+    """
+    statements = []
+    buffer = ""
+    pieces = script.split(";")
+    for piece in pieces[:-1]:
+        buffer += piece + ";"
+        if sqlite3.complete_statement(buffer):
+            statements.append(buffer.strip())
+            buffer = ""
+    tail = (buffer + pieces[-1]).strip()
+    if tail:
+        if not sqlite3.complete_statement(tail + ";"):
+            raise StateError(f"the script ends in the middle of a statement: {tail[:60]!r}")
+        statements.append(tail)
+    return tuple(statements)
 
 
 def _identifier(name: str) -> str:
