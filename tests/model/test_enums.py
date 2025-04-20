@@ -181,3 +181,20 @@ def test_habit_is_spring_or_winter() -> None:
 def test_treated_seed_is_a_rejection_and_not_a_grading() -> None:
     """A finding rejects whatever the numbers say, so it sits in the same list."""
     assert RejectionReason.TREATED_SEED in set(RejectionReason)
+
+
+def test_the_gradings_and_the_findings_are_both_reasons() -> None:
+    gradings = {
+        RejectionReason.GERMINATION,
+        RejectionReason.MOISTURE,
+        RejectionReason.SCREENINGS,
+        RejectionReason.NITROGEN,
+        RejectionReason.ADMIXTURE,
+    }
+    findings = {
+        RejectionReason.INSECT,
+        RejectionReason.ODOUR,
+        RejectionReason.TREATED_SEED,
+    }
+    assert gradings | findings == set(RejectionReason)
+    assert not gradings & findings

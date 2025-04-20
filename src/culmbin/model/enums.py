@@ -71,15 +71,17 @@ class IntakeOutcome(StrEnum):
 class RejectionReason(StrEnum):
     """Why a load went back down the road.
 
-    The first four are gradings. The last three are findings, and a finding
-    rejects a load whatever the grading says, which is why they are in the
-    same enumeration rather than in a schedule.
+    The first five are gradings, worked off the sample. The last three are
+    findings, which somebody saw, and a finding rejects a load whatever the
+    numbers say. Both are in the same enumeration because the delivery note
+    carries one reason and does not care which sort it was.
     """
 
     GERMINATION = "germination"
     MOISTURE = "moisture"
     SCREENINGS = "screenings"
     NITROGEN = "nitrogen"
+    ADMIXTURE = "admixture"
     INSECT = "insect"
     ODOUR = "odour"
     TREATED_SEED = "treated_seed"
