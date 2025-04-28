@@ -96,9 +96,34 @@ CREATE TABLE vessel (
 CREATE INDEX vessel_by_kind ON vessel (kind, code);
 """
 
+_ANALYSES = """
+CREATE TABLE analysis (
+    reference TEXT PRIMARY KEY,
+    material  TEXT NOT NULL,
+    taken     TEXT NOT NULL,
+    note      TEXT NOT NULL DEFAULT '',
+    CHECK (material IN ('barley', 'malt'))
+);
+
+CREATE INDEX analysis_by_day ON analysis (taken, reference);
+
+CREATE TABLE result (
+    analysis TEXT NOT NULL REFERENCES analysis (reference) ON DELETE CASCADE,
+    code     TEXT NOT NULL,
+    value    REAL NOT NULL,
+    basis    TEXT,
+    PRIMARY KEY (analysis, code),
+    CHECK (value >= 0.0),
+    CHECK (basis IS NULL OR basis IN ('as_is', 'dry'))
+);
+
+CREATE INDEX result_by_code ON result (code, analysis);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
+    Migration(3, "analyses and their results", _ANALYSES),
 )
 """Every migration this package knows about, in the order they are applied.
 
