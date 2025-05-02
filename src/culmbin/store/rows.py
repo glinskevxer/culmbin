@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import datetime as dt
 import sqlite3
+from decimal import Decimal, InvalidOperation
 from typing import Any, TypeVar
 
 from culmbin.errors import ValidationError
@@ -43,6 +44,27 @@ def as_date(row: sqlite3.Row, column: str) -> dt.date:
 def as_optional_date(row: sqlite3.Row, column: str) -> dt.date | None:
     """A date or nothing out of a row."""
     return None if row[column] is None else as_date(row, column)
+
+
+def money_text(amount: Decimal) -> str:
+    """A price as it is stored.
+
+    Money is stored as text and never as a REAL. A price per tonne of 232.50
+    is not representable as a float, and a settlement that is a hundredth of
+    a penny out is a settlement somebody has to explain.
+    """
+    return str(amount.quantize(Decimal("0.01")))
+
+
+def as_money(row: sqlite3.Row, column: str) -> Decimal:
+    """A price out of a row."""
+    value = row[column]
+    if not isinstance(value, str):
+        raise ValidationError(f"{column} holds {value!r}, which is not a price")
+    try:
+        return Decimal(value)
+    except InvalidOperation as exc:
+        raise ValidationError(f"{column} holds {value!r}, which is not a price") from exc
 
 
 def as_text(row: sqlite3.Row, column: str) -> str:

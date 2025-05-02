@@ -120,10 +120,37 @@ CREATE TABLE result (
 CREATE INDEX result_by_code ON result (code, analysis);
 """
 
+_STANDARDS = """
+CREATE TABLE standard (
+    name              TEXT PRIMARY KEY,
+    moisture_base     REAL NOT NULL,
+    moisture_reject   REAL NOT NULL,
+    nitrogen_min      REAL NOT NULL,
+    nitrogen_max      REAL NOT NULL,
+    nitrogen_reject   REAL NOT NULL,
+    screenings_free   REAL NOT NULL,
+    screenings_reject REAL NOT NULL,
+    germination_floor REAL NOT NULL,
+    energy_floor      REAL NOT NULL,
+    admixture_reject  REAL NOT NULL,
+    drying_per_point  TEXT NOT NULL,
+    nitrogen_step     REAL NOT NULL,
+    nitrogen_per_step TEXT NOT NULL,
+    CHECK (moisture_base < moisture_reject),
+    CHECK (nitrogen_min <= nitrogen_max),
+    CHECK (nitrogen_max <= nitrogen_reject),
+    CHECK (screenings_free < screenings_reject),
+    CHECK (nitrogen_step > 0.0),
+    CHECK (germination_floor > 0.0 AND germination_floor <= 100.0),
+    CHECK (energy_floor > 0.0 AND energy_floor <= 100.0)
+);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
     Migration(3, "analyses and their results", _ANALYSES),
+    Migration(4, "the intake quality standards", _STANDARDS),
 )
 """Every migration this package knows about, in the order they are applied.
 
