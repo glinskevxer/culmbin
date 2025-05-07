@@ -146,11 +146,90 @@ CREATE TABLE standard (
 );
 """
 
+_INTAKE = """
+CREATE TABLE purchase (
+    code            TEXT PRIMARY KEY,
+    party           TEXT NOT NULL REFERENCES party (code),
+    variety         TEXT NOT NULL REFERENCES variety (code),
+    crop_year       INTEGER NOT NULL,
+    tonnes          REAL NOT NULL,
+    window_start    TEXT NOT NULL,
+    window_end      TEXT NOT NULL,
+    standard        TEXT NOT NULL REFERENCES standard (name),
+    price_per_tonne TEXT NOT NULL,
+    signed          TEXT NOT NULL,
+    CHECK (tonnes > 0.0),
+    CHECK (window_end >= window_start)
+);
+
+CREATE INDEX purchase_by_party ON purchase (party, code);
+CREATE INDEX purchase_by_crop ON purchase (crop_year, code);
+
+CREATE TABLE delivery (
+    ticket   TEXT PRIMARY KEY,
+    purchase TEXT NOT NULL REFERENCES purchase (code),
+    party    TEXT NOT NULL REFERENCES party (code),
+    arrived  TEXT NOT NULL,
+    gross_kg REAL NOT NULL,
+    tare_kg  REAL NOT NULL,
+    haulier  TEXT REFERENCES party (code),
+    vehicle  TEXT,
+    sample   TEXT REFERENCES analysis (reference),
+    CHECK (gross_kg > tare_kg),
+    CHECK (tare_kg > 0.0)
+);
+
+CREATE INDEX delivery_by_purchase ON delivery (purchase, arrived);
+CREATE INDEX delivery_by_day ON delivery (arrived, ticket);
+"""
+
+_GRADINGS = """
+CREATE TABLE grading (
+    ticket         TEXT PRIMARY KEY REFERENCES delivery (ticket) ON DELETE CASCADE,
+    standard       TEXT NOT NULL REFERENCES standard (name),
+    outcome        TEXT NOT NULL,
+    net_tonnes     REAL NOT NULL,
+    settled_tonnes REAL NOT NULL,
+    graded_on      TEXT NOT NULL,
+    CHECK (outcome IN ('accepted', 'accepted_on_deduction', 'rejected')),
+    CHECK (net_tonnes > 0.0),
+    CHECK (settled_tonnes >= 0.0),
+    CHECK (settled_tonnes <= net_tonnes),
+    CHECK ((outcome = 'rejected') = (settled_tonnes = 0.0))
+);
+
+CREATE INDEX grading_by_outcome ON grading (outcome, ticket);
+
+CREATE TABLE rejection (
+    ticket TEXT NOT NULL REFERENCES grading (ticket) ON DELETE CASCADE,
+    reason TEXT NOT NULL,
+    PRIMARY KEY (ticket, reason),
+    CHECK (reason IN (
+        'germination', 'moisture', 'screenings', 'nitrogen', 'admixture',
+        'insect', 'odour', 'treated_seed'
+    ))
+);
+
+CREATE TABLE adjustment (
+    ticket    TEXT NOT NULL REFERENCES grading (ticket) ON DELETE CASCADE,
+    seq       INTEGER NOT NULL,
+    kind      TEXT NOT NULL,
+    note      TEXT NOT NULL,
+    tonnes    REAL NOT NULL DEFAULT 0.0,
+    per_tonne TEXT NOT NULL DEFAULT '0.00',
+    PRIMARY KEY (ticket, seq),
+    CHECK (tonnes >= 0.0),
+    CHECK (tonnes = 0.0 OR per_tonne = '0.00')
+);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
     Migration(3, "analyses and their results", _ANALYSES),
     Migration(4, "the intake quality standards", _STANDARDS),
+    Migration(5, "purchases and deliveries", _INTAKE),
+    Migration(6, "gradings, their rejections and their adjustments", _GRADINGS),
 )
 """Every migration this package knows about, in the order they are applied.
 
