@@ -18,6 +18,8 @@ from culmbin.store.deliveries import (
     find_delivery,
     get_delivery,
     list_deliveries,
+    record_harvest,
+    undated,
     unsampled,
 )
 
@@ -152,3 +154,39 @@ def test_the_unsampled_list_can_stop_at_a_day(stocked: Book) -> None:
 def test_an_empty_book_has_nothing_waiting(stocked: Book) -> None:
     assert unsampled(stocked) == ()
     assert list_deliveries(stocked) == ()
+
+
+def test_a_delivery_starts_undated(stocked: Book) -> None:
+    add_delivery(stocked, delivery())
+    assert not get_delivery(stocked, "W-24188").dated
+    assert [item.ticket for item in undated(stocked)] == ["W-24188"]
+
+
+def test_a_harvest_date_takes_it_off_the_undated_list(stocked: Book) -> None:
+    add_delivery(stocked, delivery())
+    record_harvest(stocked, "W-24188", dt.date(2025, 8, 14))
+    assert get_delivery(stocked, "W-24188").harvested == dt.date(2025, 8, 14)
+    assert undated(stocked) == ()
+
+
+def test_a_harvest_date_cannot_be_moved(stocked: Book) -> None:
+    add_delivery(stocked, delivery())
+    record_harvest(stocked, "W-24188", dt.date(2025, 8, 14))
+    with pytest.raises(ConflictError, match="already cut on"):
+        record_harvest(stocked, "W-24188", dt.date(2025, 8, 20))
+
+
+def test_a_harvest_after_the_delivery_is_refused(stocked: Book) -> None:
+    add_delivery(stocked, delivery())
+    with pytest.raises(ConflictError, match="arrived on"):
+        record_harvest(stocked, "W-24188", dt.date(2025, 10, 1))
+
+
+def test_dating_a_delivery_that_is_not_there_is_refused(stocked: Book) -> None:
+    with pytest.raises(NotFoundError):
+        record_harvest(stocked, "W-99999", dt.date(2025, 8, 14))
+
+
+def test_a_delivery_written_with_a_harvest_date_reads_it_back(stocked: Book) -> None:
+    add_delivery(stocked, delivery(harvested=dt.date(2025, 8, 14)))
+    assert get_delivery(stocked, "W-24188").harvested == dt.date(2025, 8, 14)

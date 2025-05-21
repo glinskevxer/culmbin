@@ -16,12 +16,16 @@ from culmbin.store.book import Book
 from culmbin.store.rows import (
     as_date,
     as_number,
+    as_optional_date,
     as_optional_text,
     as_text,
     date_text,
+    optional_date_text,
 )
 
-_COLUMNS = "ticket, purchase, party, arrived, gross_kg, tare_kg, haulier, vehicle, sample"
+_COLUMNS = (
+    "ticket, purchase, party, arrived, gross_kg, tare_kg, haulier, vehicle, sample, harvested"
+)
 
 
 def _delivery(row: sqlite3.Row) -> Delivery:
@@ -36,13 +40,14 @@ def _delivery(row: sqlite3.Row) -> Delivery:
         haulier=as_optional_text(row, "haulier"),
         vehicle=as_optional_text(row, "vehicle"),
         sample=as_optional_text(row, "sample"),
+        harvested=as_optional_date(row, "harvested"),
     )
 
 
 def add_delivery(book: Book, delivery: Delivery) -> Delivery:
     """Write a new delivery."""
     book.execute(
-        f"INSERT INTO delivery ({_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        f"INSERT INTO delivery ({_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             delivery.ticket,
             delivery.purchase,
@@ -53,6 +58,7 @@ def add_delivery(book: Book, delivery: Delivery) -> Delivery:
             delivery.haulier,
             delivery.vehicle,
             delivery.sample,
+            optional_date_text(delivery.harvested),
         ),
     )
     return delivery
@@ -86,6 +92,32 @@ def attach_sample(book: Book, ticket: str, reference: str) -> Delivery:
         raise ConflictError(f"ticket {ticket} was already sampled as {delivery.sample}")
     book.execute("UPDATE delivery SET sample = ? WHERE ticket = ?", (reference, ticket))
     return get_delivery(book, ticket)
+
+
+def record_harvest(book: Book, ticket: str, harvested: dt.date) -> Delivery:
+    """Put a harvest date on a delivery, which is what the grower's paperwork gives.
+
+    Without it a load cannot be graded, because whether it is new crop
+    decides which rejections apply. Refuses to move one that is there, for
+    the same reason a sample cannot be moved.
+    """
+    delivery = get_delivery(book, ticket)
+    if delivery.dated:
+        raise ConflictError(f"ticket {ticket} is already cut on {delivery.harvested}")
+    if harvested > delivery.arrived:
+        raise ConflictError(f"ticket {ticket} arrived on {delivery.arrived}, before {harvested}")
+    book.execute(
+        "UPDATE delivery SET harvested = ? WHERE ticket = ?", (date_text(harvested), ticket)
+    )
+    return get_delivery(book, ticket)
+
+
+def undated(book: Book) -> tuple[Delivery, ...]:
+    """Every delivery with no harvest date on it yet, oldest first."""
+    rows = book.query(
+        f"SELECT {_COLUMNS} FROM delivery WHERE harvested IS NULL ORDER BY arrived, ticket"
+    )
+    return tuple(_delivery(row) for row in rows)
 
 
 def list_deliveries(

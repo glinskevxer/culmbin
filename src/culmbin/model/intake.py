@@ -94,6 +94,7 @@ class Delivery:
     haulier: str | None = None
     vehicle: str | None = None
     sample: str | None = None
+    harvested: dt.date | None = None
 
     def __post_init__(self) -> None:
         if not self.ticket.strip():
@@ -104,6 +105,10 @@ class Delivery:
             raise ValidationError(
                 f"ticket {self.ticket} tares at {self.tare_kg:.0f}kg "
                 f"and grosses at {self.gross_kg:.0f}kg"
+            )
+        if self.harvested is not None and self.harvested > self.arrived:
+            raise ValidationError(
+                f"ticket {self.ticket} was cut on {self.harvested} and delivered on {self.arrived}"
             )
         if self.net_tonnes > MAX_VEHICLE_TONNES:
             raise ValidationError(
@@ -126,6 +131,17 @@ class Delivery:
         """Whether a sample has been taken off this load yet."""
         return self.sample is not None
 
+    @property
+    def dated(self) -> bool:
+        """Whether we know when this barley was cut.
+
+        Without it the load cannot be graded at all, because whether it is
+        new crop decides which rejections apply. The column is optional
+        because the weighbridge takes the ticket before the grower's
+        paperwork catches up, not because it is optional to know.
+        """
+        return self.harvested is not None
+
     def with_sample(self, reference: str) -> Delivery:
         """The same delivery with a sample reference on it."""
         if not reference.strip():
@@ -140,6 +156,22 @@ class Delivery:
             haulier=self.haulier,
             vehicle=self.vehicle,
             sample=reference,
+            harvested=self.harvested,
+        )
+
+    def cut_on(self, day: dt.date) -> Delivery:
+        """The same delivery with a harvest date on it."""
+        return Delivery(
+            ticket=self.ticket,
+            purchase=self.purchase,
+            party=self.party,
+            arrived=self.arrived,
+            gross_kg=self.gross_kg,
+            tare_kg=self.tare_kg,
+            haulier=self.haulier,
+            vehicle=self.vehicle,
+            sample=self.sample,
+            harvested=day,
         )
 
     def __str__(self) -> str:

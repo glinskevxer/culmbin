@@ -223,6 +223,10 @@ CREATE TABLE adjustment (
 );
 """
 
+_HARVESTED = """
+ALTER TABLE delivery ADD COLUMN harvested TEXT;
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -230,6 +234,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(4, "the intake quality standards", _STANDARDS),
     Migration(5, "purchases and deliveries", _INTAKE),
     Migration(6, "gradings, their rejections and their adjustments", _GRADINGS),
+    Migration(7, "when the barley on a delivery was cut", _HARVESTED),
 )
 """Every migration this package knows about, in the order they are applied.
 

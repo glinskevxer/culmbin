@@ -127,3 +127,27 @@ def test_a_sample_reference_goes_on_without_changing_anything_else() -> None:
 def test_a_blank_sample_reference_is_refused() -> None:
     with pytest.raises(ValidationError, match="blank sample reference"):
         delivery().with_sample("  ")
+
+
+def test_a_delivery_starts_undated() -> None:
+    assert not delivery().dated
+    assert delivery().harvested is None
+
+
+def test_a_harvest_date_goes_on_without_changing_anything_else() -> None:
+    cut = delivery().cut_on(dt.date(2025, 8, 14))
+    assert cut.dated
+    assert cut.harvested == dt.date(2025, 8, 14)
+    assert cut.net_tonnes == delivery().net_tonnes
+    assert not delivery().dated
+
+
+def test_barley_cut_after_it_arrived_is_refused() -> None:
+    with pytest.raises(ValidationError, match="was cut on"):
+        delivery(harvested=dt.date(2025, 10, 1))
+
+
+def test_a_sample_reference_survives_a_harvest_date_going_on() -> None:
+    both = delivery().with_sample("B-1").cut_on(dt.date(2025, 8, 14))
+    assert both.sample == "B-1"
+    assert both.harvested == dt.date(2025, 8, 14)
