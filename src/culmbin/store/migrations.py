@@ -227,6 +227,63 @@ _HARVESTED = """
 ALTER TABLE delivery ADD COLUMN harvested TEXT;
 """
 
+_RECIPES = """
+CREATE TABLE programme (
+    name            TEXT PRIMARY KEY,
+    style           TEXT NOT NULL,
+    target_moisture REAL NOT NULL,
+    CHECK (style IN ('lager', 'pale_ale', 'distilling', 'vienna')),
+    CHECK (target_moisture > 0.0 AND target_moisture <= 48.0)
+);
+
+CREATE TABLE programme_leg (
+    programme TEXT NOT NULL REFERENCES programme (name) ON DELETE CASCADE,
+    seq       INTEGER NOT NULL,
+    kind      TEXT NOT NULL,
+    hours     REAL NOT NULL,
+    celsius   REAL NOT NULL,
+    PRIMARY KEY (programme, seq),
+    CHECK (kind IN ('wet_stand', 'air_rest')),
+    CHECK (hours > 0.0)
+);
+
+CREATE TABLE schedule (
+    name                TEXT PRIMARY KEY,
+    style               TEXT NOT NULL,
+    target_degree_hours REAL NOT NULL,
+    base_c              REAL NOT NULL,
+    CHECK (style IN ('lager', 'pale_ale', 'distilling', 'vienna')),
+    CHECK (target_degree_hours > 0.0)
+);
+
+CREATE TABLE schedule_turn (
+    schedule     TEXT NOT NULL REFERENCES schedule (name) ON DELETE CASCADE,
+    seq          INTEGER NOT NULL,
+    degree_hours REAL NOT NULL,
+    PRIMARY KEY (schedule, seq),
+    CHECK (degree_hours > 0.0)
+);
+
+CREATE TABLE curve (
+    name            TEXT PRIMARY KEY,
+    style           TEXT NOT NULL,
+    target_moisture REAL NOT NULL,
+    CHECK (style IN ('lager', 'pale_ale', 'distilling', 'vienna')),
+    CHECK (target_moisture > 0.0 AND target_moisture < 12.0)
+);
+
+CREATE TABLE curve_step (
+    curve       TEXT NOT NULL REFERENCES curve (name) ON DELETE CASCADE,
+    seq         INTEGER NOT NULL,
+    phase       TEXT NOT NULL,
+    hours       REAL NOT NULL,
+    air_celsius REAL NOT NULL,
+    PRIMARY KEY (curve, seq),
+    CHECK (phase IN ('free_drying', 'break', 'curing')),
+    CHECK (hours > 0.0)
+);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -235,6 +292,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(5, "purchases and deliveries", _INTAKE),
     Migration(6, "gradings, their rejections and their adjustments", _GRADINGS),
     Migration(7, "when the barley on a delivery was cut", _HARVESTED),
+    Migration(8, "steep programmes, germination schedules and kiln curves", _RECIPES),
 )
 """Every migration this package knows about, in the order they are applied.
 
