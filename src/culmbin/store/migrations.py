@@ -284,6 +284,71 @@ CREATE TABLE curve_step (
 );
 """
 
+_PIECES = """
+CREATE TABLE piece (
+    code            TEXT PRIMARY KEY,
+    variety         TEXT NOT NULL REFERENCES variety (code),
+    crop_year       INTEGER NOT NULL,
+    style           TEXT NOT NULL,
+    charge_tonnes   REAL NOT NULL,
+    charge_moisture REAL NOT NULL,
+    started         TEXT NOT NULL,
+    stage           TEXT NOT NULL,
+    vessel          TEXT REFERENCES vessel (code),
+    programme       TEXT REFERENCES programme (name),
+    schedule        TEXT REFERENCES schedule (name),
+    curve           TEXT REFERENCES curve (name),
+    CHECK (charge_tonnes > 0.0),
+    CHECK (charge_moisture >= 0.0 AND charge_moisture < 60.0),
+    CHECK (style IN ('lager', 'pale_ale', 'distilling', 'vienna')),
+    CHECK (stage IN (
+        'steeping', 'germinating', 'kilning', 'kilned', 'binned', 'written_off'
+    )),
+    CHECK ((stage IN ('steeping', 'germinating', 'kilning')) = (vessel IS NOT NULL))
+);
+
+CREATE INDEX piece_by_stage ON piece (stage, code);
+CREATE INDEX piece_by_vessel ON piece (vessel, code);
+
+CREATE TABLE movement (
+    piece  TEXT NOT NULL REFERENCES piece (code) ON DELETE CASCADE,
+    seq    INTEGER NOT NULL,
+    stage  TEXT NOT NULL,
+    vessel TEXT REFERENCES vessel (code),
+    on_day TEXT NOT NULL,
+    note   TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (piece, seq),
+    CHECK (stage IN (
+        'steeping', 'germinating', 'kilning', 'kilned', 'binned', 'written_off'
+    ))
+);
+
+CREATE TABLE reading (
+    piece   TEXT NOT NULL REFERENCES piece (code) ON DELETE CASCADE,
+    seq     INTEGER NOT NULL,
+    stage   TEXT NOT NULL,
+    hours   REAL NOT NULL,
+    celsius REAL NOT NULL,
+    PRIMARY KEY (piece, seq),
+    CHECK (hours > 0.0),
+    CHECK (stage IN ('steeping', 'germinating', 'kilning'))
+);
+
+CREATE INDEX reading_by_stage ON reading (piece, stage, seq);
+
+CREATE TABLE weighing (
+    piece    TEXT NOT NULL REFERENCES piece (code) ON DELETE CASCADE,
+    point    TEXT NOT NULL,
+    tonnes   REAL NOT NULL,
+    moisture REAL,
+    PRIMARY KEY (piece, point),
+    CHECK (point IN ('steep_out', 'off_kiln', 'culm')),
+    CHECK (tonnes >= 0.0),
+    CHECK (moisture IS NULL OR (moisture >= 0.0 AND moisture < 60.0)),
+    CHECK ((point = 'culm') OR moisture IS NOT NULL)
+);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -293,6 +358,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(6, "gradings, their rejections and their adjustments", _GRADINGS),
     Migration(7, "when the barley on a delivery was cut", _HARVESTED),
     Migration(8, "steep programmes, germination schedules and kiln curves", _RECIPES),
+    Migration(9, "pieces, their movements, their readings and their weights", _PIECES),
 )
 """Every migration this package knows about, in the order they are applied.
 
