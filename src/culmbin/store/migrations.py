@@ -349,6 +349,78 @@ CREATE TABLE weighing (
 );
 """
 
+_BINS = """
+CREATE TABLE malt_bin (
+    code             TEXT PRIMARY KEY,
+    capacity_tonnes  REAL NOT NULL,
+    state            TEXT NOT NULL,
+    mixed            INTEGER NOT NULL DEFAULT 0,
+    commissioned     TEXT,
+    CHECK (capacity_tonnes > 0.0),
+    CHECK (state IN ('empty', 'filling', 'sealed', 'drawing')),
+    CHECK (mixed IN (0, 1))
+);
+
+CREATE TABLE bin_receipt (
+    malt_bin TEXT NOT NULL REFERENCES malt_bin (code) ON DELETE CASCADE,
+    seq      INTEGER NOT NULL,
+    piece    TEXT NOT NULL REFERENCES piece (code),
+    tonnes   REAL NOT NULL,
+    moisture REAL NOT NULL,
+    on_day   TEXT NOT NULL,
+    PRIMARY KEY (malt_bin, seq),
+    CHECK (tonnes > 0.0),
+    CHECK (moisture >= 0.0 AND moisture < 60.0)
+);
+
+CREATE INDEX bin_receipt_by_piece ON bin_receipt (piece, malt_bin);
+
+CREATE TABLE bin_issue (
+    malt_bin TEXT NOT NULL REFERENCES malt_bin (code) ON DELETE CASCADE,
+    seq      INTEGER NOT NULL,
+    tonnes   REAL NOT NULL,
+    on_day   TEXT NOT NULL,
+    note     TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (malt_bin, seq),
+    CHECK (tonnes > 0.0)
+);
+
+CREATE TABLE malt_lot (
+    code     TEXT PRIMARY KEY,
+    malt_bin TEXT NOT NULL REFERENCES malt_bin (code),
+    sealed   TEXT NOT NULL,
+    tonnes   REAL NOT NULL,
+    moisture REAL NOT NULL,
+    analysis TEXT REFERENCES analysis (reference),
+    style    TEXT,
+    CHECK (tonnes > 0.0),
+    CHECK (moisture >= 0.0 AND moisture < 60.0),
+    CHECK (style IS NULL OR style IN ('lager', 'pale_ale', 'distilling', 'vienna'))
+);
+
+CREATE INDEX malt_lot_by_bin ON malt_lot (malt_bin, code);
+
+CREATE TABLE lot_variety (
+    lot     TEXT NOT NULL REFERENCES malt_lot (code) ON DELETE CASCADE,
+    variety TEXT NOT NULL REFERENCES variety (code),
+    PRIMARY KEY (lot, variety)
+);
+
+CREATE TABLE lot_crop_year (
+    lot       TEXT NOT NULL REFERENCES malt_lot (code) ON DELETE CASCADE,
+    crop_year INTEGER NOT NULL,
+    PRIMARY KEY (lot, crop_year)
+);
+
+CREATE TABLE lot_parent (
+    lot   TEXT NOT NULL REFERENCES malt_lot (code) ON DELETE CASCADE,
+    piece TEXT NOT NULL REFERENCES piece (code),
+    PRIMARY KEY (lot, piece)
+);
+
+CREATE INDEX lot_parent_by_piece ON lot_parent (piece, lot);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -359,6 +431,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(7, "when the barley on a delivery was cut", _HARVESTED),
     Migration(8, "steep programmes, germination schedules and kiln curves", _RECIPES),
     Migration(9, "pieces, their movements, their readings and their weights", _PIECES),
+    Migration(10, "malt bins, what went in and out, and the lots", _BINS),
 )
 """Every migration this package knows about, in the order they are applied.
 

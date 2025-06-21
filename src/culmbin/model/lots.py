@@ -44,8 +44,6 @@ class Bin:
             raise ValidationError("a bin needs a code")
         if self.capacity_tonnes <= 0.0:
             raise ValidationError(f"{self.code} holds {self.capacity_tonnes} tonnes")
-        if self.state is BinState.EMPTY and self.mixed:
-            raise ValidationError(f"{self.code} is empty and still marked mixed")
 
     @property
     def takes_malt(self) -> bool:
@@ -67,14 +65,12 @@ class Bin:
         return Bin(self.code, self.capacity_tonnes, self.state, True, self.commissioned)
 
     def in_state(self, state: BinState) -> Bin:
-        """The same bin in another state.
+        """The same bin in another state, carrying its mixed mark with it.
 
-        A bin coming back to empty keeps its mixed mark, because the mark is
-        about the boot of the bin and the sweep auger rather than about what
-        the level gauge says.
+        A bin coming back to empty keeps the mark. Empty is what the level
+        gauge says, and the mark is about the boot of the bin and the sweep
+        auger, which the level gauge has never been able to see.
         """
-        if state is BinState.EMPTY and self.mixed:
-            return Bin(self.code, self.capacity_tonnes, state, False, self.commissioned)
         return Bin(self.code, self.capacity_tonnes, state, self.mixed, self.commissioned)
 
     def cleaned_out(self) -> Bin:

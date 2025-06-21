@@ -62,9 +62,9 @@ def test_a_bin_needs_a_code_and_a_capacity() -> None:
         malt_bin(capacity_tonnes=0.0)
 
 
-def test_an_empty_bin_cannot_already_be_mixed() -> None:
-    with pytest.raises(ValidationError, match="empty and still marked mixed"):
-        malt_bin(mixed=True)
+def test_an_empty_bin_can_still_be_marked_mixed() -> None:
+    """That is the state a bin sits in between being drawn down and being swept."""
+    assert malt_bin(mixed=True).mixed
 
 
 def test_an_empty_or_filling_bin_takes_malt() -> None:
@@ -88,10 +88,10 @@ def test_marking_mixed_sticks() -> None:
     assert marked.marked_mixed().mixed
 
 
-def test_a_bin_drawn_empty_is_no_longer_marked() -> None:
+def test_a_bin_drawn_empty_is_still_marked() -> None:
     """Coming back to empty is the level gauge, and the mark is the boot."""
     marked = malt_bin(state=BinState.DRAWING).marked_mixed()
-    assert not marked.in_state(BinState.EMPTY).mixed
+    assert marked.in_state(BinState.EMPTY).mixed
 
 
 def test_a_bin_keeps_its_mark_while_it_holds_malt() -> None:
