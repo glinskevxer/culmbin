@@ -421,6 +421,35 @@ CREATE TABLE lot_parent (
 CREATE INDEX lot_parent_by_piece ON lot_parent (piece, lot);
 """
 
+_SPECS = """
+CREATE TABLE specification (
+    name     TEXT PRIMARY KEY,
+    material TEXT NOT NULL,
+    CHECK (material IN ('barley', 'malt'))
+);
+
+CREATE TABLE clause (
+    specification TEXT NOT NULL REFERENCES specification (name) ON DELETE CASCADE,
+    seq           INTEGER NOT NULL,
+    code          TEXT NOT NULL,
+    basis         TEXT,
+    minimum       REAL,
+    maximum       REAL,
+    PRIMARY KEY (specification, seq),
+    CHECK (basis IS NULL OR basis IN ('as_is', 'dry')),
+    CHECK (minimum IS NOT NULL OR maximum IS NOT NULL),
+    CHECK (minimum IS NULL OR maximum IS NULL OR minimum <= maximum)
+);
+
+CREATE UNIQUE INDEX clause_once_per_analyte ON clause (specification, code);
+
+CREATE TABLE specification_variety (
+    specification TEXT NOT NULL REFERENCES specification (name) ON DELETE CASCADE,
+    variety       TEXT NOT NULL REFERENCES variety (code),
+    PRIMARY KEY (specification, variety)
+);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -432,6 +461,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(8, "steep programmes, germination schedules and kiln curves", _RECIPES),
     Migration(9, "pieces, their movements, their readings and their weights", _PIECES),
     Migration(10, "malt bins, what went in and out, and the lots", _BINS),
+    Migration(11, "specifications and their clauses", _SPECS),
 )
 """Every migration this package knows about, in the order they are applied.
 
