@@ -450,6 +450,61 @@ CREATE TABLE specification_variety (
 );
 """
 
+_SALES = """
+CREATE TABLE contract (
+    code            TEXT PRIMARY KEY,
+    customer        TEXT NOT NULL REFERENCES party (code),
+    specification   TEXT NOT NULL REFERENCES specification (name),
+    tonnes          REAL NOT NULL,
+    moisture        REAL NOT NULL,
+    price_per_tonne TEXT NOT NULL,
+    window_start    TEXT NOT NULL,
+    window_end      TEXT NOT NULL,
+    signed          TEXT NOT NULL,
+    state           TEXT NOT NULL,
+    variety         TEXT REFERENCES variety (code),
+    CHECK (tonnes > 0.0),
+    CHECK (moisture > 0.0 AND moisture < 12.0),
+    CHECK (window_end >= window_start),
+    CHECK (state IN ('draft', 'signed', 'closed', 'cancelled'))
+);
+
+CREATE INDEX contract_by_customer ON contract (customer, code);
+CREATE INDEX contract_by_state ON contract (state, code);
+
+CREATE TABLE call_off (
+    code        TEXT PRIMARY KEY,
+    contract    TEXT NOT NULL REFERENCES contract (code) ON DELETE CASCADE,
+    tonnes      REAL NOT NULL,
+    week_start  TEXT NOT NULL,
+    week_end    TEXT NOT NULL,
+    placed      TEXT NOT NULL,
+    CHECK (tonnes > 0.0),
+    CHECK (week_end >= week_start)
+);
+
+CREATE INDEX call_off_by_contract ON call_off (contract, week_start);
+
+CREATE TABLE shipment (
+    code       TEXT PRIMARY KEY,
+    contract   TEXT NOT NULL REFERENCES contract (code),
+    lot        TEXT NOT NULL REFERENCES malt_lot (code),
+    tonnes     REAL NOT NULL,
+    moisture   REAL NOT NULL,
+    despatched TEXT NOT NULL,
+    state      TEXT NOT NULL,
+    call_off   TEXT REFERENCES call_off (code),
+    haulier    TEXT REFERENCES party (code),
+    vehicle    TEXT,
+    CHECK (tonnes > 0.0),
+    CHECK (moisture >= 0.0 AND moisture < 60.0),
+    CHECK (state IN ('planned', 'loaded', 'despatched', 'cancelled'))
+);
+
+CREATE INDEX shipment_by_contract ON shipment (contract, despatched);
+CREATE INDEX shipment_by_lot ON shipment (lot, code);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -462,6 +517,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(9, "pieces, their movements, their readings and their weights", _PIECES),
     Migration(10, "malt bins, what went in and out, and the lots", _BINS),
     Migration(11, "specifications and their clauses", _SPECS),
+    Migration(12, "contracts, call-offs and shipments", _SALES),
 )
 """Every migration this package knows about, in the order they are applied.
 

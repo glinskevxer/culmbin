@@ -13,14 +13,16 @@ from decimal import Decimal
 import pytest
 
 from culmbin.intake.standard import Standard
-from culmbin.model.enums import Approval, Habit, Role, VesselKind
+from culmbin.model.enums import Approval, Basis, Habit, Material, Role, VesselKind
 from culmbin.model.intake import Purchase
 from culmbin.model.party import Party
 from culmbin.model.plant import Vessel
+from culmbin.model.spec import Clause, specification
 from culmbin.model.variety import Variety
 from culmbin.store.book import Book
 from culmbin.store.parties import add_party
 from culmbin.store.purchases import add_purchase
+from culmbin.store.specs import save_specification
 from culmbin.store.standards import add_standard
 from culmbin.store.varieties import add_variety
 from culmbin.store.vessels import add_vessel
@@ -41,6 +43,18 @@ def stocked(book: Book) -> Book:
     add_variety(book, Variety("LAUR", "Laureate", Habit.SPRING, Approval.APPROVED, listed))
     add_variety(book, Variety("DIAB", "Diablo", Habit.SPRING, Approval.APPROVED, listed))
     add_standard(book, Standard("malting 2025"))
+    save_specification(
+        book,
+        specification(
+            "lager 2025",
+            Material.MALT,
+            [
+                Clause("extract_fine", basis=Basis.DRY, minimum=80.5),
+                Clause("colour", minimum=2.5, maximum=4.5),
+            ],
+            ["LAUR"],
+        ),
+    )
     add_purchase(
         book,
         Purchase(

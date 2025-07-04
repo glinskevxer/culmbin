@@ -18,7 +18,7 @@ from culmbin.store.specs import (
 )
 
 
-def lager(name: str = "lager 2025") -> Specification:
+def lager(name: str = "pale ale 2025") -> Specification:
     return specification(
         name,
         Material.MALT,
@@ -33,25 +33,25 @@ def lager(name: str = "lager 2025") -> Specification:
 
 def test_a_specification_reads_back_the_way_it_went_in(stocked: Book) -> None:
     save_specification(stocked, lager())
-    assert get_specification(stocked, "lager 2025") == lager()
+    assert get_specification(stocked, "pale ale 2025") == lager()
 
 
 def test_the_clauses_keep_the_order_they_were_written_in(stocked: Book) -> None:
     save_specification(stocked, lager())
-    read = get_specification(stocked, "lager 2025")
+    read = get_specification(stocked, "pale ale 2025")
     assert [clause.code for clause in read] == ["extract_fine", "colour", "total_protein"]
 
 
 def test_a_clause_basis_survives_the_round_trip(stocked: Book) -> None:
     save_specification(stocked, lager())
-    read = get_specification(stocked, "lager 2025")
+    read = get_specification(stocked, "pale ale 2025")
     assert read.clauses[0].basis is Basis.DRY
     assert read.clauses[1].basis is None
 
 
 def test_both_bounds_survive_the_round_trip(stocked: Book) -> None:
     save_specification(stocked, lager())
-    read = get_specification(stocked, "lager 2025")
+    read = get_specification(stocked, "pale ale 2025")
     assert read.clauses[1].minimum == pytest.approx(2.5)
     assert read.clauses[1].maximum == pytest.approx(4.5)
     assert read.clauses[0].maximum is None
@@ -59,13 +59,13 @@ def test_both_bounds_survive_the_round_trip(stocked: Book) -> None:
 
 def test_the_varieties_survive_the_round_trip(stocked: Book) -> None:
     save_specification(stocked, lager())
-    assert get_specification(stocked, "lager 2025").varieties == frozenset({"LAUR"})
+    assert get_specification(stocked, "pale ale 2025").varieties == frozenset({"LAUR"})
 
 
 def test_a_specification_that_is_not_there_says_which_one(stocked: Book) -> None:
-    with pytest.raises(NotFoundError, match="lager 2024"):
-        get_specification(stocked, "lager 2024")
-    assert find_specification(stocked, "lager 2024") is None
+    with pytest.raises(NotFoundError, match="pale ale 2024"):
+        get_specification(stocked, "pale ale 2024")
+    assert find_specification(stocked, "pale ale 2024") is None
 
 
 def test_writing_over_a_specification_is_refused(stocked: Book) -> None:
@@ -106,6 +106,7 @@ def test_the_listing_narrows_by_material(stocked: Book) -> None:
     assert [item.name for item in list_specifications(stocked)] == [
         "intake 2025",
         "lager 2025",
+        "pale ale 2025",
     ]
     only = list_specifications(stocked, Material.BARLEY)
     assert [item.name for item in only] == ["intake 2025"]
@@ -113,30 +114,34 @@ def test_the_listing_narrows_by_material(stocked: Book) -> None:
 
 def test_copying_carries_every_clause_over(stocked: Book) -> None:
     save_specification(stocked, lager())
-    copy_specification(stocked, "lager 2025", "lager 2026")
-    copy = get_specification(stocked, "lager 2026")
-    assert copy.clauses == get_specification(stocked, "lager 2025").clauses
+    copy_specification(stocked, "pale ale 2025", "pale ale 2026")
+    copy = get_specification(stocked, "pale ale 2026")
+    assert copy.clauses == get_specification(stocked, "pale ale 2025").clauses
     assert copy.varieties == frozenset({"LAUR"})
 
 
 def test_copying_onto_a_name_that_is_taken_is_refused(stocked: Book) -> None:
     save_specification(stocked, lager())
-    save_specification(stocked, lager("lager 2026"))
+    save_specification(stocked, lager("pale ale 2026"))
     with pytest.raises(ConflictError, match="already a specification"):
-        copy_specification(stocked, "lager 2025", "lager 2026")
+        copy_specification(stocked, "pale ale 2025", "pale ale 2026")
 
 
 def test_copying_something_that_is_not_there_is_refused(stocked: Book) -> None:
     with pytest.raises(NotFoundError):
-        copy_specification(stocked, "lager 2024", "lager 2026")
+        copy_specification(stocked, "pale ale 2024", "pale ale 2026")
 
 
 def test_the_laboratory_can_ask_whose_specification_cares(stocked: Book) -> None:
     save_specification(stocked, lager())
-    save_specification(stocked, lager("lager 2026"))
-    assert specifications_using(stocked, "colour") == ("lager 2025", "lager 2026")
+    save_specification(stocked, lager("pale ale 2026"))
+    assert specifications_using(stocked, "colour") == (
+        "lager 2025",
+        "pale ale 2025",
+        "pale ale 2026",
+    )
     assert specifications_using(stocked, "friability") == ()
 
 
-def test_an_empty_book_has_no_specifications(stocked: Book) -> None:
-    assert list_specifications(stocked) == ()
+def test_a_book_holds_only_what_was_written_into_it(stocked: Book) -> None:
+    assert [item.name for item in list_specifications(stocked)] == ["lager 2025"]
