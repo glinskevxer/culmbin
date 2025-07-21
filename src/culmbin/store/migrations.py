@@ -505,6 +505,18 @@ CREATE INDEX shipment_by_contract ON shipment (contract, despatched);
 CREATE INDEX shipment_by_lot ON shipment (lot, code);
 """
 
+_SOURCES = """
+CREATE TABLE piece_source (
+    piece  TEXT NOT NULL REFERENCES piece (code) ON DELETE CASCADE,
+    ticket TEXT NOT NULL REFERENCES delivery (ticket),
+    tonnes REAL NOT NULL,
+    PRIMARY KEY (piece, ticket),
+    CHECK (tonnes > 0.0)
+);
+
+CREATE INDEX piece_source_by_ticket ON piece_source (ticket, piece);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -518,6 +530,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(10, "malt bins, what went in and out, and the lots", _BINS),
     Migration(11, "specifications and their clauses", _SPECS),
     Migration(12, "contracts, call-offs and shipments", _SALES),
+    Migration(13, "which lorry loads a piece was charged from", _SOURCES),
 )
 """Every migration this package knows about, in the order they are applied.
 

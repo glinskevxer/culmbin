@@ -239,6 +239,38 @@ def weighings(book: Book, code: str) -> dict[str, tuple[float, float | None]]:
     }
 
 
+def record_source(book: Book, code: str, ticket: str, tonnes: float) -> None:
+    """Say which lorry load part of a piece's charge came out of.
+
+    A steep charge is drawn out of a silo and a silo holds several loads, so
+    a piece has several sources and each one carries a tonnage. Without this
+    the traceability walk stops at the steep, which is the wrong end of it:
+    the question is always which grower's barley is in the customer's beer.
+    """
+    if tonnes <= 0.0:
+        raise ConflictError(f"a source of {tonnes} tonnes is not a source")
+    if find_piece(book, code) is None:
+        raise NotFoundError(f"no piece called {code!r}")
+    book.execute(
+        "INSERT INTO piece_source (piece, ticket, tonnes) VALUES (?, ?, ?)",
+        (code, ticket, tonnes),
+    )
+
+
+def sources_of(book: Book, code: str) -> tuple[tuple[str, float], ...]:
+    """Every lorry load a piece was charged from, in ticket order."""
+    rows = book.query(
+        "SELECT ticket, tonnes FROM piece_source WHERE piece = ? ORDER BY ticket", (code,)
+    )
+    return tuple((as_text(row, "ticket"), as_number(row, "tonnes")) for row in rows)
+
+
+def pieces_from_ticket(book: Book, ticket: str) -> tuple[str, ...]:
+    """Every piece a lorry load went into, in code order."""
+    rows = book.query("SELECT piece FROM piece_source WHERE ticket = ? ORDER BY piece", (ticket,))
+    return tuple(as_text(row, "piece") for row in rows)
+
+
 def list_pieces(
     book: Book,
     stage: PieceStage | None = None,
