@@ -145,6 +145,18 @@ def block(title: str, lines: Sequence[str]) -> list[str]:
     return [title, *lines]
 
 
+def table_block(title: str, columns: Sequence[Column], rows: Sequence[Sequence[str]]) -> list[str]:
+    """A titled table, or nothing at all if there are no rows.
+
+    `block` cannot do this on its own, because a table with no rows still
+    has a heading and a rule in it, so it never looks empty. That is exactly
+    how a page ends up with six headings and nothing under any of them.
+    """
+    if not rows:
+        return []
+    return block(title, table(columns, rows))
+
+
 def page(sections: Iterable[Sequence[str]]) -> str:
     """Join sections with a blank line between them, ending in a newline."""
     blocks = [list(section) for section in sections if section]

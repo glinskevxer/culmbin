@@ -22,6 +22,7 @@ from culmbin.report.layout import (
     pairs,
     rule,
     table,
+    table_block,
     wrap,
 )
 
@@ -147,6 +148,17 @@ def test_a_block_with_nothing_in_it_is_nothing() -> None:
 
 def test_a_block_with_something_keeps_its_title() -> None:
     assert block("rejections", ["W-1 germination"]) == ["rejections", "W-1 germination"]
+
+
+def test_a_table_block_with_no_rows_is_nothing() -> None:
+    """A table with no rows still has a heading, so `block` cannot tell."""
+    assert table_block("waiting", [Column("ticket")], []) == []
+
+
+def test_a_table_block_with_rows_has_its_title_and_table() -> None:
+    lines = table_block("waiting", [Column("ticket")], [["W-1"]])
+    assert lines[0] == "waiting"
+    assert lines[-1] == "W-1"
 
 
 def test_a_page_puts_a_blank_line_between_sections() -> None:
