@@ -7,9 +7,8 @@ import datetime as dt
 import pytest
 
 from culmbin.errors import ConflictError, NotFoundError, StateError
-from culmbin.model.enums import MaltStyle, Material, PieceStage
+from culmbin.model.enums import MaltStyle, Material
 from culmbin.model.lots import Bin
-from culmbin.model.process import Piece
 from culmbin.model.results import Result, analysis_of
 from culmbin.store.analyses import save_analysis
 from culmbin.store.bins import add_bin, issue, receive, seal
@@ -23,33 +22,15 @@ from culmbin.store.lots import (
     seal_lot,
     uncertified,
 )
-from culmbin.store.pieces import add_piece
+from tests.support.records import kilned
 
 BINNED = dt.date(2025, 11, 12)
 SEALED = dt.date(2025, 11, 13)
 
 
-def a_piece(book: Book, code: str, variety: str = "LAUR", crop_year: int = 2025) -> str:
-    add_piece(
-        book,
-        Piece(
-            code=code,
-            variety=variety,
-            crop_year=crop_year,
-            style=MaltStyle.PALE_ALE,
-            charge_tonnes=45.0,
-            charge_moisture=12.0,
-            started=dt.date(2025, 11, 3),
-            stage=PieceStage.KILNED,
-            vessel=None,
-        ),
-    )
-    return code
-
-
 def one_variety(book: Book) -> str:
-    a_piece(book, "2025-118")
-    a_piece(book, "2025-119")
+    kilned(book, "2025-118")
+    kilned(book, "2025-119")
     add_bin(book, Bin("B04", 220.0))
     receive(book, "B04", "2025-118", 30.0, 4.4, BINNED)
     receive(book, "B04", "2025-119", 30.0, 4.2, BINNED)
@@ -58,8 +39,8 @@ def one_variety(book: Book) -> str:
 
 
 def two_varieties(book: Book) -> str:
-    a_piece(book, "2025-121", variety="LAUR")
-    a_piece(book, "2025-120", variety="DIAB")
+    kilned(book, "2025-121", variety="LAUR")
+    kilned(book, "2025-120", variety="DIAB")
     add_bin(book, Bin("B05", 220.0))
     receive(book, "B05", "2025-121", 30.0, 4.4, BINNED)
     receive(book, "B05", "2025-120", 30.0, 4.2, BINNED)
@@ -99,7 +80,7 @@ def test_a_lot_does_not_move_when_the_bin_does(stocked: Book) -> None:
 
 
 def test_a_lot_off_a_filling_bin_is_refused(stocked: Book) -> None:
-    a_piece(stocked, "2025-118")
+    kilned(stocked, "2025-118")
     add_bin(stocked, Bin("B04", 220.0))
     receive(stocked, "B04", "2025-118", 30.0, 4.4, BINNED)
     with pytest.raises(StateError, match="comes off a sealed bin"):
@@ -190,7 +171,7 @@ def test_a_piece_says_which_lots_it_ended_up_in(stocked: Book) -> None:
 
 
 def test_a_piece_that_went_nowhere_is_in_no_lot(stocked: Book) -> None:
-    a_piece(stocked, "2025-130")
+    kilned(stocked, "2025-130")
     assert lots_from_piece(stocked, "2025-130") == ()
 
 

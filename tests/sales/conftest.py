@@ -14,12 +14,10 @@ from culmbin.model.enums import (
     Habit,
     MaltStyle,
     Material,
-    PieceStage,
     Role,
 )
 from culmbin.model.lots import Bin
 from culmbin.model.party import Party
-from culmbin.model.process import Piece
 from culmbin.model.results import Result, analysis_of
 from culmbin.model.sales import Contract
 from culmbin.model.spec import Clause, specification
@@ -30,32 +28,15 @@ from culmbin.store.book import Book
 from culmbin.store.contracts import add_contract
 from culmbin.store.lots import certify, seal_lot
 from culmbin.store.parties import add_party
-from culmbin.store.pieces import add_piece
 from culmbin.store.specs import save_specification
 from culmbin.store.varieties import add_variety
 from culmbin.units.season import Window
+from tests.support.records import kilned
 
 SIGNED = dt.date(2025, 6, 2)
 WINDOW = Window(dt.date(2025, 10, 1), dt.date(2026, 9, 30))
 BINNED = dt.date(2025, 11, 12)
 SEALED = dt.date(2025, 11, 13)
-
-
-def a_piece(book: Book, code: str, variety: str) -> None:
-    add_piece(
-        book,
-        Piece(
-            code=code,
-            variety=variety,
-            crop_year=2025,
-            style=MaltStyle.LAGER,
-            charge_tonnes=45.0,
-            charge_moisture=12.0,
-            started=dt.date(2025, 11, 3),
-            stage=PieceStage.KILNED,
-            vessel=None,
-        ),
-    )
 
 
 def a_lot(
@@ -72,7 +53,7 @@ def a_lot(
     add_bin(book, Bin(malt_bin, 220.0))
     for index, variety in enumerate(varieties):
         piece = f"{lot}-P{index}"
-        a_piece(book, piece, variety)
+        kilned(book, piece, variety, style=MaltStyle.LAGER)
         receive(book, malt_bin, piece, tonnes / len(varieties), 4.2, BINNED)
     seal(book, malt_bin)
     seal_lot(book, lot, malt_bin, SEALED)

@@ -13,30 +13,17 @@ import pytest
 
 from culmbin.errors import ValidationError
 from culmbin.intake.standard import SCREEN_CODES, Standard, missing_for_screen, screen
-from culmbin.model.enums import Basis, Material, RejectionReason
+from culmbin.model.enums import Material, RejectionReason
 from culmbin.model.results import Analysis, Result, analysis_of
+from tests.support.samples import barley_sample
 
 HARVESTED = dt.date(2025, 8, 14)
 OLD_CROP_DAY = dt.date(2025, 11, 4)
 NEW_CROP_DAY = dt.date(2025, 9, 1)
 
-GOOD = {
-    "moisture": 13.8,
-    "screenings": 1.4,
-    "germ_capacity": 99.0,
-    "germ_energy": 98.0,
-    "admixture": 0.4,
-}
-
 
 def sample(**overrides: float) -> Analysis:
-    """A barley sample that passes everything, with anything overridden."""
-    values = dict(GOOD)
-    values.update({key: value for key, value in overrides.items() if key != "nitrogen"})
-    nitrogen = overrides.get("nitrogen", 1.62)
-    results = [Result(code, value) for code, value in values.items()]
-    results.append(Result("nitrogen", nitrogen, Basis.DRY))
-    return analysis_of("B-2025-0918-03", Material.BARLEY, OLD_CROP_DAY, results)
+    return barley_sample("B-2025-0918-03", OLD_CROP_DAY, **overrides)
 
 
 def standard(**kwargs: object) -> Standard:

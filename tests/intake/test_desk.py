@@ -21,7 +21,7 @@ from culmbin.intake.desk import (
     take_sample,
     weigh_in,
 )
-from culmbin.model.enums import Basis, IntakeOutcome, Material, RejectionReason
+from culmbin.model.enums import IntakeOutcome, Material, RejectionReason
 from culmbin.model.intake import Delivery
 from culmbin.model.results import Analysis, Result, analysis_of
 from culmbin.store.book import Book
@@ -29,6 +29,7 @@ from culmbin.store.deliveries import get_delivery
 from culmbin.store.gradings import get_grading
 from culmbin.store.parties import close_party
 from culmbin.units.season import Window
+from tests.support.samples import barley_sample
 
 ARRIVED = dt.date(2025, 9, 18)
 HARVESTED = dt.date(2025, 8, 14)
@@ -50,18 +51,7 @@ def ticket(name: str = "W-24188", **kwargs: object) -> Delivery:
 
 
 def sample(reference: str = "B-1", **overrides: float) -> Analysis:
-    values: dict[str, float] = {
-        "moisture": 12.5,
-        "screenings": 1.4,
-        "germ_capacity": 99.0,
-        "germ_energy": 98.0,
-        "admixture": 0.4,
-    }
-    nitrogen = overrides.pop("nitrogen", 1.62)
-    values.update(overrides)
-    results = [Result(code, value) for code, value in values.items()]
-    results.append(Result("nitrogen", nitrogen, Basis.DRY))
-    return analysis_of(reference, Material.BARLEY, ARRIVED, results)
+    return barley_sample(reference, ARRIVED, **overrides)
 
 
 def through(desk: Book, name: str = "W-24188", **overrides: float) -> None:

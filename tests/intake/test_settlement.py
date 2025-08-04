@@ -11,10 +11,11 @@ from culmbin.errors import StateError, ValidationError
 from culmbin.intake.grading import Adjustment, Grading, grade
 from culmbin.intake.settlement import Settlement, settle, settle_or_none, statement_total
 from culmbin.intake.standard import Standard
-from culmbin.model.enums import Basis, IntakeOutcome, Material, RejectionReason
+from culmbin.model.enums import IntakeOutcome, RejectionReason
 from culmbin.model.intake import Purchase
-from culmbin.model.results import Analysis, Result, analysis_of
+from culmbin.model.results import Analysis
 from culmbin.units.season import Window
+from tests.support.samples import barley_sample
 
 HARVESTED = dt.date(2025, 8, 14)
 ARRIVED = dt.date(2025, 11, 4)
@@ -39,18 +40,7 @@ def purchase(**kwargs: object) -> Purchase:
 
 
 def sample(**overrides: float) -> Analysis:
-    values: dict[str, float] = {
-        "moisture": 12.5,
-        "screenings": 1.4,
-        "germ_capacity": 99.0,
-        "germ_energy": 98.0,
-        "admixture": 0.4,
-    }
-    nitrogen = overrides.pop("nitrogen", 1.62)
-    values.update(overrides)
-    results = [Result(code, value) for code, value in values.items()]
-    results.append(Result("nitrogen", nitrogen, Basis.DRY))
-    return analysis_of("B-1", Material.BARLEY, ARRIVED, results)
+    return barley_sample("B-1", ARRIVED, **overrides)
 
 
 def graded(**overrides: float) -> Grading:

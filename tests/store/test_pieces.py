@@ -7,7 +7,7 @@ import datetime as dt
 import pytest
 
 from culmbin.errors import ConflictError, NotFoundError, StateError
-from culmbin.model.enums import MaltStyle, PieceStage
+from culmbin.model.enums import PieceStage
 from culmbin.model.process import Piece
 from culmbin.store.book import Book
 from culmbin.store.pieces import (
@@ -26,23 +26,11 @@ from culmbin.store.pieces import (
     write_off_piece,
 )
 from culmbin.units.clock import Leg
-
-STARTED = dt.date(2025, 11, 3)
+from tests.support.records import STARTED, a_piece
 
 
 def piece(code: str = "2025-118", **kwargs: object) -> Piece:
-    fields: dict[str, object] = {
-        "variety": "LAUR",
-        "crop_year": 2025,
-        "style": MaltStyle.PALE_ALE,
-        "charge_tonnes": 45.0,
-        "charge_moisture": 12.0,
-        "started": STARTED,
-        "stage": PieceStage.STEEPING,
-        "vessel": "S1",
-    }
-    fields.update(kwargs)
-    return Piece(code=code, **fields)  # type: ignore[arg-type]
+    return a_piece(code, **kwargs)
 
 
 def test_a_piece_reads_back_the_way_it_went_in(stocked: Book) -> None:
