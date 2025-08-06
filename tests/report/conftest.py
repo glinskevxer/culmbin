@@ -8,17 +8,13 @@ from decimal import Decimal
 import pytest
 
 from culmbin.intake.desk import grade_load, take_sample, weigh_in
-from culmbin.intake.standard import Standard
-from culmbin.model.enums import Approval, Habit, RejectionReason, Role
+from culmbin.model.enums import RejectionReason, Role
 from culmbin.model.intake import Delivery, Purchase
 from culmbin.model.party import Party
 from culmbin.model.results import Analysis
-from culmbin.model.variety import Variety
 from culmbin.store.book import Book
 from culmbin.store.parties import add_party
 from culmbin.store.purchases import add_purchase
-from culmbin.store.standards import add_standard
-from culmbin.store.varieties import add_variety
 from culmbin.units.season import Window
 from tests.support.samples import barley_sample
 
@@ -51,8 +47,9 @@ def lorry(book: Book, ticket: str, party: str = "HOLB", **overrides: float) -> N
 
 
 @pytest.fixture
-def week(book: Book) -> Book:
+def week(registers: Book) -> Book:
     """Two growers with a purchase each and nothing delivered yet."""
+    book = registers
     for code, name in (("HOLB", "Holbeach Grange"), ("WYKE", "Wykeham Farms")):
         add_party(book, Party(code, name, Role.GROWER, dt.date(2011, 6, 1), holding="12/345"))
         add_purchase(
@@ -70,14 +67,6 @@ def week(book: Book) -> Book:
             ),
         )
     return book
-
-
-@pytest.fixture(autouse=True)
-def _registers(book: Book) -> None:
-    add_variety(
-        book, Variety("LAUR", "Laureate", Habit.SPRING, Approval.APPROVED, dt.date(2018, 12, 1))
-    )
-    add_standard(book, Standard("malting 2025"))
 
 
 REJECTED = RejectionReason.GERMINATION
