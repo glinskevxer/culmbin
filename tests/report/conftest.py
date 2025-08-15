@@ -1,4 +1,4 @@
-"""A book with a week of intake in it."""
+"""A book with a week of intake in it, and the sales fixture next door."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from culmbin.store.book import Book
 from culmbin.store.parties import add_party
 from culmbin.store.purchases import add_purchase
 from culmbin.units.season import Window
+from tests.sales.conftest import desk  # noqa: F401
 from tests.support.samples import barley_sample
 
 ARRIVED = dt.date(2025, 9, 18)
