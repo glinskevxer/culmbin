@@ -32,6 +32,7 @@ from culmbin.store.recipes import save_curve, save_programme, save_schedule
 from culmbin.store.standards import add_standard
 from culmbin.store.varieties import add_variety
 from culmbin.store.vessels import add_vessel
+from tests.support.books import chain_book, sales_book
 
 APPLIED_AT = "2025-07-01T08:00:00+00:00"
 TODAY = dt.date(2025, 11, 4)
@@ -139,3 +140,15 @@ def plant(registers: Book) -> Book:
         ),
     )
     return book
+
+
+@pytest.fixture
+def desk(registers: Book) -> Book:
+    """A signed lager contract and one certified Laureate lot against it."""
+    return sales_book(registers)
+
+
+@pytest.fixture
+def chain(registers: Book) -> Book:
+    """A whole chain, from two lorries to one shipment."""
+    return chain_book(registers)

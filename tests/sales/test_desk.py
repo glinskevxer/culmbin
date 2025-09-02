@@ -30,7 +30,8 @@ from culmbin.store.contracts import add_call, add_contract, position, set_state
 from culmbin.store.lots import get_lot
 from culmbin.store.shipments import get_shipment
 from culmbin.units.season import Window
-from tests.sales.conftest import SIGNED, WINDOW, a_lot
+from tests.support.books import CONTRACT_WINDOW as WINDOW
+from tests.support.books import SIGNED, a_lot
 
 ON = dt.date(2025, 11, 20)
 WEEK = Window(dt.date(2025, 11, 17), dt.date(2025, 11, 21))

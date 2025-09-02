@@ -7,7 +7,7 @@ import datetime as dt
 from culmbin.report.stock import bin_page, laboratory_page, stock_page
 from culmbin.sales.desk import allocate
 from culmbin.store.book import Book
-from tests.sales.conftest import a_lot
+from tests.support.books import a_lot
 
 ON = dt.date(2025, 11, 20)
 

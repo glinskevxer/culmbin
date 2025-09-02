@@ -14,7 +14,7 @@ from culmbin.errors import StateError
 from culmbin.model.enums import Conformance
 from culmbin.sales.certificate import build, render, write
 from culmbin.store.book import Book
-from tests.sales.conftest import a_lot
+from tests.support.books import a_lot
 
 ISSUED = dt.date(2025, 11, 21)
 
