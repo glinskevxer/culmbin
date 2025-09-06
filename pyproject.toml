@@ -18,6 +18,9 @@ dev = [
   "mypy==1.14.1",
 ]
 
+[project.scripts]
+culmbin = "culmbin.cli.main:run"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/culmbin"]
 
