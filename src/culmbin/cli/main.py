@@ -18,48 +18,16 @@ from __future__ import annotations
 
 import datetime as dt
 import sys
-from dataclasses import dataclass
 from pathlib import Path
 
 import click
 
 from culmbin import __version__
+from culmbin.cli.context import DEFAULT_BOOK, Context, pass_context
+from culmbin.cli.registers import party, variety, vessel
 from culmbin.errors import CulmbinError
 from culmbin.store.book import Book
 from culmbin.store.migrations import current_version, latest_version, migrate, pending
-
-DEFAULT_BOOK = "culmbin.sqlite3"
-
-
-@dataclass
-class Context:
-    """What every command is given: a path, a day and a book when it wants one."""
-
-    path: str
-    on: dt.date
-    _book: Book | None = None
-
-    def book(self) -> Book:
-        """Open the book, migrate it, and keep it for the rest of the command."""
-        if self._book is None:
-            book = Book.open(self.path)
-            migrate(book, self.stamp)
-            self._book = book
-        return self._book
-
-    def close(self) -> None:
-        """Close the book if one was opened."""
-        if self._book is not None:
-            self._book.close()
-            self._book = None
-
-    @property
-    def stamp(self) -> str:
-        """The day, as a migration stamps itself."""
-        return f"{self.on.isoformat()}T00:00:00+00:00"
-
-
-pass_context = click.make_pass_decorator(Context)
 
 
 @click.group()
@@ -133,6 +101,11 @@ def backup(context: Context, target: Path) -> None:
     """
     context.book().backup_to(target)
     click.echo(f"copied {context.path} to {target}")
+
+
+cli.add_command(party)
+cli.add_command(variety)
+cli.add_command(vessel)
 
 
 def run() -> int:
