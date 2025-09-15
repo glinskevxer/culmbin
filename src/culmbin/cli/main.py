@@ -25,6 +25,7 @@ import click
 from culmbin import __version__
 from culmbin.cli.context import DEFAULT_BOOK, Context, pass_context
 from culmbin.cli.intake import delivery, purchase, standard
+from culmbin.cli.process import piece, recipe
 from culmbin.cli.registers import party, variety, vessel
 from culmbin.errors import CulmbinError
 from culmbin.store.book import Book
@@ -106,6 +107,8 @@ def backup(context: Context, target: Path) -> None:
 
 cli.add_command(delivery)
 cli.add_command(party)
+cli.add_command(piece)
+cli.add_command(recipe)
 cli.add_command(purchase)
 cli.add_command(standard)
 cli.add_command(variety)

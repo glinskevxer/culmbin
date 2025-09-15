@@ -14,8 +14,17 @@ from collections.abc import Sequence
 
 from culmbin.errors import ValidationError
 from culmbin.model.analytes import analyte
-from culmbin.model.enums import Material
+from culmbin.model.enums import KilnPhase, LegKind, Material
 from culmbin.model.results import Result
+from culmbin.process.kiln import KilnStep
+from culmbin.process.steep import SteepLeg
+
+LEG_KINDS = {"wet": LegKind.WET_STAND, "air": LegKind.AIR_REST}
+KILN_PHASES = {
+    "dry": KilnPhase.FREE_DRYING,
+    "break": KilnPhase.BREAK,
+    "cure": KilnPhase.CURING,
+}
 
 
 def parse_result(text: str) -> Result:
@@ -47,3 +56,33 @@ def parse_results(items: Sequence[str], material: Material) -> list[Result]:
                 f"and this is a {material} sample"
             )
     return results
+
+
+def _three(text: str, what: str, shape: str) -> tuple[str, float, float]:
+    """Read a `word:hours:degrees` triple, or say what it should look like."""
+    parts = text.split(":")
+    if len(parts) != 3:
+        raise ValidationError(f"{text!r} is not a {what} like {shape}")
+    word = parts[0].strip().lower()
+    try:
+        hours = float(parts[1])
+        degrees = float(parts[2])
+    except ValueError as exc:
+        raise ValidationError(f"{text!r} is not a {what} like {shape}") from exc
+    return word, hours, degrees
+
+
+def parse_leg(text: str) -> SteepLeg:
+    """Read a steep leg written `wet:8:14` or `air:16:16`."""
+    word, hours, degrees = _three(text, "steep leg", "wet:8:14")
+    if word not in LEG_KINDS:
+        raise ValidationError(f"{word!r} is not a steep leg, which is wet or air")
+    return SteepLeg(LEG_KINDS[word], hours, degrees)
+
+
+def parse_step(text: str) -> KilnStep:
+    """Read a kiln step written `dry:10:60`, `break:4:70` or `cure:4:85`."""
+    word, hours, degrees = _three(text, "kiln step", "dry:10:60")
+    if word not in KILN_PHASES:
+        raise ValidationError(f"{word!r} is not a kiln step, which is dry, break or cure")
+    return KilnStep(KILN_PHASES[word], hours, degrees)
