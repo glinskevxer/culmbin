@@ -16,6 +16,7 @@ from culmbin.errors import ValidationError
 from culmbin.model.analytes import analyte
 from culmbin.model.enums import KilnPhase, LegKind, Material
 from culmbin.model.results import Result
+from culmbin.model.spec import Clause
 from culmbin.process.kiln import KilnStep
 from culmbin.process.steep import SteepLeg
 
@@ -86,3 +87,42 @@ def parse_step(text: str) -> KilnStep:
     if word not in KILN_PHASES:
         raise ValidationError(f"{word!r} is not a kiln step, which is dry, break or cure")
     return KilnStep(KILN_PHASES[word], hours, degrees)
+
+
+def parse_clause(text: str) -> Clause:
+    """Read a specification clause written the way a customer writes one.
+
+    `colour<=4.5` is a ceiling, `extract_fine>=80.5` is a floor and
+    `colour=2.5..4.5` is both. The basis is not typed for the same reason it
+    is not typed on a result: it is a property of the determination.
+    """
+    for sign, floor in (("<=", False), (">=", True)):
+        if sign in text:
+            code, raw = (part.strip() for part in text.split(sign, 1))
+            value = _number(raw, text)
+            item = analyte(code)
+            if floor:
+                return Clause(code, item.basis, minimum=value)
+            return Clause(code, item.basis, maximum=value)
+    if "=" in text and ".." in text:
+        code, raw = (part.strip() for part in text.split("=", 1))
+        low, high = (part.strip() for part in raw.split("..", 1))
+        item = analyte(code)
+        return Clause(code, item.basis, minimum=_number(low, text), maximum=_number(high, text))
+    raise ValidationError(f"{text!r} is not a clause like colour=2.5..4.5 or colour<=4.5")
+
+
+def _number(raw: str, text: str) -> float:
+    """Read the number out of a clause, or say what the clause looked like."""
+    try:
+        return float(raw)
+    except ValueError as exc:
+        raise ValidationError(f"{text!r} has {raw!r} where a number goes") from exc
+
+
+def parse_draw(text: str) -> tuple[str, float]:
+    """Read a blend part written `L-2025-0412:40`."""
+    if text.count(":") != 1:
+        raise ValidationError(f"{text!r} is not a draw like L-2025-0412:40")
+    lot, raw = (part.strip() for part in text.split(":"))
+    return lot, _number(raw, text)
