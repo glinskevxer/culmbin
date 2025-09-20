@@ -28,6 +28,7 @@ from culmbin.cli.intake import delivery, purchase, standard
 from culmbin.cli.lab import blend, lot, malt_bin, spec
 from culmbin.cli.process import piece, recipe
 from culmbin.cli.registers import party, variety, vessel
+from culmbin.cli.sales import call, contract, ship
 from culmbin.errors import CulmbinError
 from culmbin.store.book import Book
 from culmbin.store.migrations import current_version, latest_version, migrate, pending
@@ -108,11 +109,14 @@ def backup(context: Context, target: Path) -> None:
 
 cli.add_command(delivery)
 cli.add_command(blend)
+cli.add_command(call)
+cli.add_command(contract)
 cli.add_command(lot)
 cli.add_command(malt_bin)
 cli.add_command(party)
 cli.add_command(piece)
 cli.add_command(recipe)
+cli.add_command(ship)
 cli.add_command(spec)
 cli.add_command(purchase)
 cli.add_command(standard)
