@@ -40,7 +40,7 @@ CONFORMANCE_WORDS = {
 
 @click.group()
 def spec() -> None:
-    """Customer specifications."""
+    """The specifications customers sign against."""
 
 
 @spec.command("add")
@@ -115,7 +115,7 @@ def spec_show(context: Context, name: str) -> None:
 
 @click.group("bin")
 def malt_bin() -> None:
-    """Malt bins."""
+    """The bins finished malt is kept in."""
 
 
 @malt_bin.command("add")

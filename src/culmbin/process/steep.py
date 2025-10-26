@@ -116,7 +116,7 @@ class Programme:
 
     @property
     def air_hours(self) -> float:
-        """Hours drained."""
+        """Hours drained and breathing."""
         return sum(leg.hours for leg in self.legs if leg.kind is LegKind.AIR_REST)
 
     @property
