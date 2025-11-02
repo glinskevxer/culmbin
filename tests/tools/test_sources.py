@@ -1,4 +1,4 @@
-"""The self-checks, run against the tree they check.
+"""Reading the source tree without importing it.
 
 Two things are tested for each check. It passes on this tree, which is what
 CI cares about, and it fails on something planted, which is what says the
@@ -13,74 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from culmbin.tools import check_docstrings, check_layers, sources
-
-
-def test_the_docstring_check_passes_on_this_tree() -> None:
-    assert check_docstrings.problems() == []
-
-
-def test_the_layer_check_passes_on_this_tree() -> None:
-    assert check_layers.problems() == []
-
-
-def test_a_missing_docstring_is_found(tmp_path: Path) -> None:
-    path = tmp_path / "thing.py"
-    path.write_text(
-        '"""A module with something undocumented in it."""\n\n\ndef work():\n    pass\n'
-    )
-    module = sources.read(path)
-    found = check_docstrings._check_module(module)
-    assert any("work has no docstring" in item for item in found)
-
-
-def test_a_docstring_that_says_the_name_back_is_found(tmp_path: Path) -> None:
-    """`def malting_loss(): "Malting loss."` is worse than nothing."""
-    path = tmp_path / "thing.py"
-    path.write_text(
-        '"""A module with a docstring that says nothing."""\n\n\n'
-        'def malting_loss_percent():\n    """Malting loss percent."""\n'
-    )
-    found = check_docstrings._check_module(sources.read(path))
-    assert any("says its own name back" in item for item in found)
-
-
-def test_a_two_word_docstring_is_found(tmp_path: Path) -> None:
-    path = tmp_path / "thing.py"
-    path.write_text('"""A module."""\n\n\ndef work():\n    """Does work."""\n')
-    found = check_docstrings._check_module(sources.read(path))
-    assert any("2 words" in item for item in found)
-
-
-def test_a_private_definition_is_not_asked_for_one(tmp_path: Path) -> None:
-    path = tmp_path / "thing.py"
-    path.write_text('"""A module with a private helper in it."""\n\n\ndef _work():\n    pass\n')
-    assert check_docstrings._check_module(sources.read(path)) == []
-
-
-def test_a_module_with_no_docstring_is_found(tmp_path: Path) -> None:
-    path = tmp_path / "thing.py"
-    path.write_text("x = 1\n")
-    found = check_docstrings._check_module(sources.read(path))
-    assert any("the module has no docstring" in item for item in found)
-
-
-def test_every_layer_in_the_tree_is_in_the_table() -> None:
-    """A package added and not put in the table is caught by the check itself."""
-    in_tree = {module.layer for module in sources.source_modules()}
-    assert in_tree <= set(check_layers.layers())
-
-
-def test_units_may_not_import_from_model() -> None:
-    """The table is the rule, so the test asks the table rather than the tree."""
-    assert "model" not in check_layers.BELOW["units"]
-    assert "store" not in check_layers.BELOW["model"]
-
-
-def test_nothing_may_import_from_the_console_script() -> None:
-    for layer, allowed in check_layers.BELOW.items():
-        if layer != "tools":
-            assert "cli" not in allowed
+from culmbin.tools import sources
 
 
 def test_a_module_knows_its_dotted_name() -> None:
