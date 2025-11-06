@@ -138,7 +138,7 @@ class Book:
         """The first row, or say what was being looked for."""
         row = self.first(sql, params)
         if row is None:
-            raise NotFoundError(f"no {what} matches")
+            raise NotFoundError(f"the book holds no {what} matching that")
         return row
 
     def scalar(self, sql: str, params: Params = ()) -> Any:

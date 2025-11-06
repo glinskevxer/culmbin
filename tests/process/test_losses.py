@@ -110,7 +110,7 @@ def test_two_pieces_with_the_same_loss_report_different_yields() -> None:
     )
 
 
-def test_a_balance_works_its_dry_matters() -> None:
+def test_a_balance_carries_both_of_its_dry_matters() -> None:
     assert balance().charge_dry_tonnes == pytest.approx(39.6)
     assert balance().malt_dry_tonnes == pytest.approx(37.9 * 0.956)
 

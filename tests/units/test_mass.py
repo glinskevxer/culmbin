@@ -53,7 +53,7 @@ def test_at_moisture_is_the_identity_at_the_same_moisture() -> None:
     assert at_moisture(28.0, 4.5, 4.5) == pytest.approx(28.0)
 
 
-def test_at_moisture_reverses() -> None:
+def test_restating_a_weight_twice_gives_it_back() -> None:
     there = at_moisture(28.0, 4.2, 4.5)
     assert at_moisture(there, 4.5, 4.2) == pytest.approx(28.0)
 

@@ -133,7 +133,7 @@ def test_first_gives_nothing_when_there_is_nothing(book: Book) -> None:
 
 
 def test_one_says_what_was_being_looked_for(book: Book) -> None:
-    with pytest.raises(NotFoundError, match="no delivery matches"):
+    with pytest.raises(NotFoundError, match="no delivery matching"):
         book.one("SELECT * FROM thing WHERE code = ?", ("A",), what="delivery")
 
 

@@ -71,7 +71,7 @@ def test_something_that_is_not_a_date_says_which_column(row: sqlite3.Row) -> Non
         as_date(row, "name")
 
 
-def test_text_comes_back(row: sqlite3.Row) -> None:
+def test_a_string_comes_back_out_of_a_row(row: sqlite3.Row) -> None:
     assert as_text(row, "name") == "malt"
     assert as_optional_text(row, "absent") is None
 

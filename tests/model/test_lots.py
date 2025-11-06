@@ -82,7 +82,7 @@ def test_an_empty_bin_gives_nothing() -> None:
     assert not malt_bin().gives_malt
 
 
-def test_marking_mixed_sticks() -> None:
+def test_marking_a_bin_mixed_sticks_to_it() -> None:
     marked = malt_bin(state=BinState.FILLING).marked_mixed()
     assert marked.mixed
     assert marked.marked_mixed().mixed
@@ -109,7 +109,7 @@ def test_a_bin_with_malt_in_it_cannot_be_cleaned_out() -> None:
         malt_bin(state=BinState.SEALED).cleaned_out()
 
 
-def test_contents_work_their_dry_matter() -> None:
+def test_contents_carry_their_own_dry_matter() -> None:
     assert contents().dry_tonnes == pytest.approx(180.0 * 0.957)
 
 
@@ -187,7 +187,7 @@ def test_a_lot_is_uncertified_until_an_analysis_is_written() -> None:
     assert lot(analysis="M-2025-0412").certified
 
 
-def test_a_lot_works_its_dry_matter() -> None:
+def test_a_lot_carries_its_own_dry_matter() -> None:
     assert lot().dry_tonnes == pytest.approx(180.0 * 0.957)
 
 

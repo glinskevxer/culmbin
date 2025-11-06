@@ -46,7 +46,7 @@ def test_catching_the_base_catches_each_one(cls: type[CulmbinError]) -> None:
 
 
 @pytest.mark.parametrize("cls", SUBCLASSES)
-def test_the_message_survives(cls: type[CulmbinError]) -> None:
+def test_the_message_survives_the_raise(cls: type[CulmbinError]) -> None:
     err = cls("moisture 21.4 is above the 20.0 the silo takes")
     assert str(err) == "moisture 21.4 is above the 20.0 the silo takes"
 
@@ -67,7 +67,7 @@ def test_the_base_is_not_bare_exception_for_callers() -> None:
     assert CulmbinError.__mro__[1] is Exception
 
 
-def test_version_is_present() -> None:
+def test_the_package_carries_a_version_number() -> None:
     import culmbin
 
     assert culmbin.__version__.count(".") == 2

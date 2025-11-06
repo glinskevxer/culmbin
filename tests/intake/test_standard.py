@@ -106,7 +106,7 @@ def test_nitrogen_in_the_deduction_band_is_not_a_rejection() -> None:
     assert screen(standard(), sample(nitrogen=1.95), HARVESTED, OLD_CROP_DAY) == ()
 
 
-def test_admixture_is_rejected() -> None:
+def test_a_load_over_the_admixture_limit_is_rejected() -> None:
     reasons = screen(standard(), sample(admixture=3.0), HARVESTED, OLD_CROP_DAY)
     assert reasons == (RejectionReason.ADMIXTURE,)
 
