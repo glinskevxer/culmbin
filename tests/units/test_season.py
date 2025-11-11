@@ -15,8 +15,10 @@ from culmbin.units.season import (
     DORMANCY_WEEKS,
     Window,
     contract_year,
+    contract_year_opens,
     contract_year_window,
     crop_year,
+    crop_year_opens,
     crop_year_window,
     dormancy_clears,
     is_new_crop,
@@ -138,6 +140,11 @@ def test_a_month_window_covers_the_month() -> None:
 def test_a_month_that_is_not_one_is_refused() -> None:
     with pytest.raises(ValidationError, match="not a month"):
         month_window(2025, 13)
+
+
+def test_a_year_opens_on_the_day_the_window_starts() -> None:
+    assert crop_year_opens(2025) == dt.date(2025, 7, 1)
+    assert contract_year_opens(2025) == dt.date(2025, 10, 1)
 
 
 def test_the_crop_year_window_is_a_year() -> None:

@@ -37,7 +37,7 @@ def _window(context: Context, opens: dt.datetime | None, closes: dt.datetime | N
     return Window(start, end)
 
 
-def window_options(command: F) -> F:
+def _window_options(command: F) -> F:
     """Add `--from` and `--to` to a command, since five of them want them."""
     dated = click.option(
         "--from", "opens", type=click.DateTime(formats=["%Y-%m-%d"]), default=None
@@ -53,7 +53,7 @@ def report() -> None:
 
 
 @report.command("intake")
-@window_options
+@_window_options
 @pass_context
 def report_intake(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """What came in, what is waiting, and what it settled at."""
@@ -61,7 +61,7 @@ def report_intake(context: Context, opens: dt.datetime | None, closes: dt.dateti
 
 
 @report.command("rejections")
-@window_options
+@_window_options
 @pass_context
 def report_rejections(
     context: Context, opens: dt.datetime | None, closes: dt.datetime | None
@@ -72,7 +72,7 @@ def report_rejections(
 
 @report.command("grower")
 @click.argument("party")
-@window_options
+@_window_options
 @pass_context
 def report_grower(
     context: Context, party: str, opens: dt.datetime | None, closes: dt.datetime | None
@@ -140,7 +140,7 @@ def report_contracts(context: Context, customer: str | None) -> None:
 
 
 @report.command("calls")
-@window_options
+@_window_options
 @pass_context
 def report_calls(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """What customers have asked for against each contract."""

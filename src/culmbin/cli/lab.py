@@ -22,7 +22,7 @@ from culmbin.report.layout import Align, Column, table
 from culmbin.report.stock import bin_page, laboratory_page, stock_page
 from culmbin.sales.certificate import write
 from culmbin.store.analyses import get_analysis, save_analysis
-from culmbin.store.bins import add_bin, clean_out, contents_of, issue, receive, seal
+from culmbin.store.bins import add_bin, clean_out, contents_of, issue, list_bins, receive, seal
 from culmbin.store.lots import certify, get_lot, list_lots, seal_lot
 from culmbin.store.specs import (
     copy_specification,
@@ -195,17 +195,10 @@ def bin_list(context: Context, state: str | None) -> None:
                     f"{contents_of(context.book(), item.code).tonnes:.2f}",
                     "MIXED" if item.mixed else "",
                 ]
-                for item in list_lots_bins(context, BinState(state))
+                for item in list_bins(context.book(), BinState(state))
             ],
         )
     )
-
-
-def list_lots_bins(context: Context, state: BinState) -> tuple[Bin, ...]:
-    """Every bin in one state, which the list command narrows to."""
-    from culmbin.store.bins import list_bins
-
-    return list_bins(context.book(), state)
 
 
 @click.group()

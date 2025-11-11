@@ -59,6 +59,13 @@ def test_reporting_something_is_a_failure(capsys: pytest.CaptureFixture[str]) ->
     assert "1 to fix" in output
 
 
+def test_the_project_root_holds_the_package_and_the_tests() -> None:
+    root = sources.project_root()
+    assert (root / "pyproject.toml").exists()
+    assert sources.package_root().is_relative_to(root)
+    assert sources.tests_root().is_relative_to(root)
+
+
 def test_a_relative_path_is_printed_from_the_project_root() -> None:
     path = sources.package_root() / "units" / "mass.py"
     assert sources.relative(path) == "src/culmbin/units/mass.py"
