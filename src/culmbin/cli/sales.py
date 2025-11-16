@@ -45,8 +45,20 @@ def contract() -> None:
 @click.option(
     "--moisture", type=float, default=4.5, show_default=True, help="the contract moisture."
 )
-@click.option("--from", "opens", type=click.DateTime(formats=["%Y-%m-%d"]), required=True)
-@click.option("--to", "closes", type=click.DateTime(formats=["%Y-%m-%d"]), required=True)
+@click.option(
+    "--from",
+    "opens",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    required=True,
+    help="the first day of the window.",
+)
+@click.option(
+    "--to",
+    "closes",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    required=True,
+    help="the last day of the window.",
+)
 @click.option("--variety", default=None, help="only a lot declaring this variety can serve it.")
 @pass_context
 def contract_add(
@@ -99,7 +111,7 @@ def contract_close(context: Context, code: str) -> None:
 
 
 @contract.command("list")
-@click.option("--customer", default=None)
+@click.option("--customer", default=None, help="only this customer.")
 @pass_context
 def contract_list(context: Context, customer: str | None) -> None:
     """Print where the contracts stand."""
@@ -136,8 +148,20 @@ def call() -> None:
 @click.argument("code")
 @click.argument("contract_code")
 @click.option("--tonnes", type=float, required=True)
-@click.option("--from", "opens", type=click.DateTime(formats=["%Y-%m-%d"]), required=True)
-@click.option("--to", "closes", type=click.DateTime(formats=["%Y-%m-%d"]), required=True)
+@click.option(
+    "--from",
+    "opens",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    required=True,
+    help="the first day of the window.",
+)
+@click.option(
+    "--to",
+    "closes",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    required=True,
+    help="the last day of the window.",
+)
 @pass_context
 def call_add(
     context: Context,
@@ -156,7 +180,7 @@ def call_add(
 
 
 @call.command("list")
-@click.option("--contract", "contract_code", default=None)
+@click.option("--contract", "contract_code", default=None, help="only against this contract.")
 @pass_context
 def call_list(context: Context, contract_code: str | None) -> None:
     """List the call-offs."""
@@ -181,9 +205,9 @@ def ship() -> None:
 @click.argument("contract_code")
 @click.argument("lot")
 @click.option("--tonnes", type=float, required=True)
-@click.option("--call", "call_code", default=None)
-@click.option("--haulier", default=None)
-@click.option("--vehicle", default=None)
+@click.option("--call", "call_code", default=None, help="the call-off it serves.")
+@click.option("--haulier", default=None, help="who is carrying it.")
+@click.option("--vehicle", default=None, help="the registration on the ticket.")
 @pass_context
 def ship_allocate(
     context: Context,
@@ -248,8 +272,20 @@ def ship_cancel(context: Context, code: str) -> None:
 
 
 @ship.command("diary")
-@click.option("--from", "opens", type=click.DateTime(formats=["%Y-%m-%d"]), default=None)
-@click.option("--to", "closes", type=click.DateTime(formats=["%Y-%m-%d"]), default=None)
+@click.option(
+    "--from",
+    "opens",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=None,
+    help="the first day. Defaults to today.",
+)
+@click.option(
+    "--to",
+    "closes",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=None,
+    help="the last day. Defaults to a week on.",
+)
 @pass_context
 def ship_diary(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """Print the loading diary for a stretch of days, a week by default."""
@@ -278,8 +314,8 @@ def ship_show(context: Context, code: str) -> None:
 
 
 @ship.command("list")
-@click.option("--contract", "contract_code", default=None)
-@click.option("--lot", default=None)
+@click.option("--contract", "contract_code", default=None, help="only against this contract.")
+@click.option("--lot", default=None, help="only out of this lot.")
 @pass_context
 def ship_list(context: Context, contract_code: str | None, lot: str | None) -> None:
     """List the shipments."""

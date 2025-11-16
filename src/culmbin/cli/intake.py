@@ -36,15 +36,69 @@ def standard() -> None:
 
 @standard.command("add")
 @click.argument("name")
-@click.option("--moisture-base", type=float, default=12.5, show_default=True)
-@click.option("--moisture-reject", type=float, default=20.0, show_default=True)
-@click.option("--nitrogen-min", type=float, default=1.35, show_default=True)
-@click.option("--nitrogen-max", type=float, default=1.85, show_default=True)
-@click.option("--nitrogen-reject", type=float, default=2.05, show_default=True)
-@click.option("--screenings-free", type=float, default=2.0, show_default=True)
-@click.option("--screenings-reject", type=float, default=5.0, show_default=True)
-@click.option("--germination-floor", type=float, default=98.0, show_default=True)
-@click.option("--energy-floor", type=float, default=95.0, show_default=True)
+@click.option(
+    "--moisture-base",
+    type=float,
+    default=12.5,
+    show_default=True,
+    help="the moisture weight is settled at.",
+)
+@click.option(
+    "--moisture-reject",
+    type=float,
+    default=20.0,
+    show_default=True,
+    help="wetter than this and the load goes back.",
+)
+@click.option(
+    "--nitrogen-min",
+    type=float,
+    default=1.35,
+    show_default=True,
+    help="the bottom of the contract band, on dry matter.",
+)
+@click.option(
+    "--nitrogen-max",
+    type=float,
+    default=1.85,
+    show_default=True,
+    help="over this the deduction schedule starts.",
+)
+@click.option(
+    "--nitrogen-reject",
+    type=float,
+    default=2.05,
+    show_default=True,
+    help="over this there is no schedule and the load goes back.",
+)
+@click.option(
+    "--screenings-free",
+    type=float,
+    default=2.0,
+    show_default=True,
+    help="screenings allowed before any come off the weight.",
+)
+@click.option(
+    "--screenings-reject",
+    type=float,
+    default=5.0,
+    show_default=True,
+    help="over this the load goes back.",
+)
+@click.option(
+    "--germination-floor",
+    type=float,
+    default=98.0,
+    show_default=True,
+    help="under this the load goes back, whatever else it grades.",
+)
+@click.option(
+    "--energy-floor",
+    type=float,
+    default=95.0,
+    show_default=True,
+    help="the germinative energy new crop has to reach.",
+)
 @pass_context
 def standard_add(
     context: Context,
@@ -196,8 +250,8 @@ def purchase_extend(context: Context, code: str, until: dt.datetime) -> None:
 
 
 @purchase.command("list")
-@click.option("--party", default=None)
-@click.option("--crop", type=int, default=None)
+@click.option("--party", default=None, help="only this grower.")
+@click.option("--crop", type=int, default=None, help="only this crop year.")
 @pass_context
 def purchase_list(context: Context, party: str | None, crop: int | None) -> None:
     """List the purchases and what is left on each."""
@@ -257,9 +311,14 @@ def delivery() -> None:
 @click.option("--party", required=True)
 @click.option("--gross", type=float, required=True, help="kilogrammes.")
 @click.option("--tare", type=float, required=True, help="kilogrammes.")
-@click.option("--haulier", default=None)
-@click.option("--vehicle", default=None)
-@click.option("--harvested", type=click.DateTime(formats=["%Y-%m-%d"]), default=None)
+@click.option("--haulier", default=None, help="who carried it.")
+@click.option("--vehicle", default=None, help="the registration on the ticket.")
+@click.option(
+    "--harvested",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=None,
+    help="when the barley was cut, which decides whether it is new crop.",
+)
 @pass_context
 def delivery_add(
     context: Context,
@@ -304,7 +363,7 @@ def delivery_harvest(context: Context, ticket: str, cut: dt.datetime) -> None:
 @click.argument("ticket")
 @click.argument("reference")
 @click.option("--result", "results", multiple=True, help="code=value, repeatable.")
-@click.option("--note", default="")
+@click.option("--note", default="", help="anything the laboratory wrote alongside.")
 @pass_context
 def delivery_sample(
     context: Context, ticket: str, reference: str, results: tuple[str, ...], note: str
@@ -383,8 +442,8 @@ def delivery_waiting(context: Context) -> None:
 
 
 @delivery.command("list")
-@click.option("--party", default=None)
-@click.option("--purchase", "purchase_code", default=None)
+@click.option("--party", default=None, help="only this grower.")
+@click.option("--purchase", "purchase_code", default=None, help="only against this purchase.")
 @pass_context
 def delivery_list(context: Context, party: str | None, purchase_code: str | None) -> None:
     """List the lorries."""

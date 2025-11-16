@@ -1,0 +1,217 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]" -c constraints.txt
+      - run: python -m ruff check .
+      - run: python -m ruff format --check .
+      - run: python -m mypy
+
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]" -c constraints.txt
+      - run: python -m culmbin.tools.check_clock
+      - run: python -m culmbin.tools.check_docstrings
+      - run: python -m culmbin.tools.check_exports
+      - run: python -m culmbin.tools.check_help
+      - run: python -m culmbin.tools.check_layers
+      - run: python -m culmbin.tools.check_messages
+      - run: python -m culmbin.tools.check_naming
+      - run: python -m culmbin.tools.check_sql
+      - run: python -m culmbin.tools.check_tests
+      - run: python -m culmbin.tools.check_wiring
+      - run: python -m culmbin.tools.check_workflow
+
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]" -c constraints.txt
+      - run: python -m pytest -q
+
+  installed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install .
+      - run: culmbin --version
+      - name: work a season through the console script
+        run: |
+          set -euo pipefail
+          book=/tmp/walk.sqlite3
+          rm -f "$book"
+          culmbin --book "$book" init
+          culmbin --book "$book" --on 2011-06-01 party add HOLB "Holbeach Grange" \
+            --role grower --holding 12/345
+          culmbin --book "$book" --on 2016-02-01 party add BRWY "Sheldrake Brewing" \
+            --role customer
+          culmbin --book "$book" --on 2018-12-01 variety add LAUR Laureate --approval approved
+          culmbin --book "$book" variety list --on-list
+          culmbin --book "$book" standard add "malting 2025"
+          culmbin --book "$book" standard show "malting 2025"
+          culmbin --book "$book" --on 2025-03-12 purchase add P-1 HOLB LAUR \
+            --tonnes 480 --price 232.50 --standard "malting 2025" --crop 2025 \
+            --from 2025-09-01 --to 2025-11-30
+          culmbin --book "$book" --on 2025-09-18 delivery add W-1 P-1 --party HOLB \
+            --gross 43820 --tare 15640 --harvested 2025-08-14
+          culmbin --book "$book" --on 2025-09-19 delivery sample W-1 B-1 \
+            --result moisture=12.5 --result screenings=1.4 --result germ_capacity=99.0 \
+            --result germ_energy=98.0 --result admixture=0.4 --result nitrogen=1.62
+          culmbin --book "$book" --on 2025-09-19 delivery grade W-1
+          culmbin --book "$book" delivery settle W-1
+          culmbin --book "$book" delivery waiting
+          culmbin --book "$book" delivery list
+          culmbin --book "$book" purchase show P-1
+          culmbin --book "$book" --on 1998-04-01 vessel add S1 "steep 1" --kind steep --charge 45
+          culmbin --book "$book" --on 1998-04-01 vessel add G1 "box 1" --kind box \
+            --area 170 --depth 90
+          culmbin --book "$book" --on 1998-04-01 vessel add K1 "kiln 1" --kind kiln \
+            --area 140 --depth 100
+          culmbin --book "$book" vessel show G1
+          culmbin --book "$book" recipe programme "pale two stand" --style pale_ale \
+            --leg wet:8:14 --leg air:16:16 --leg wet:6:14 --target 44.5
+          culmbin --book "$book" recipe schedule "pale four day" --style pale_ale \
+            --target 1200 --turn 200 --turn 500 --turn 800
+          culmbin --book "$book" recipe curve "pale 18 hour" --style pale_ale \
+            --step dry:10:60 --step break:4:70 --step cure:4:85 --target 4.2
+          culmbin --book "$book" recipe list
+          culmbin --book "$book" recipe show programme "pale two stand"
+          culmbin --book "$book" --on 2025-11-03 piece charge 2025-118 --variety LAUR \
+            --crop 2025 --style pale_ale --steep S1 --tonnes 45 --moisture 12 \
+            --programme "pale two stand" --schedule "pale four day" --curve "pale 18 hour"
+          culmbin --book "$book" piece source 2025-118 W-1 --tonnes 28
+          culmbin --book "$book" piece reading 2025-118 --stage steeping --hours 48 --celsius 14
+          culmbin --book "$book" --on 2025-11-05 piece cast 2025-118 --into G1 \
+            --tonnes 71.8 --moisture 44.8 --depth 85
+          culmbin --book "$book" piece reading 2025-118 --stage germinating --hours 96 --celsius 16
+          culmbin --book "$book" report floor --at 16
+          culmbin --book "$book" --on 2025-11-08 piece kiln 2025-118 --into K1
+          culmbin --book "$book" --on 2025-11-09 piece strip 2025-118 --malt 37.9 \
+            --moisture 4.4 --culm 1.9
+          culmbin --book "$book" piece show 2025-118
+          culmbin --book "$book" piece list
+          culmbin --book "$book" bin add B04 --capacity 220
+          culmbin --book "$book" --on 2025-11-12 bin receive B04 2025-118 \
+            --tonnes 37.9 --moisture 4.4
+          culmbin --book "$book" bin seal B04
+          culmbin --book "$book" bin list
+          culmbin --book "$book" --on 2025-11-13 lot seal L-1 --bin B04
+          culmbin --book "$book" --on 2025-11-13 lot certify L-1 M-1 \
+            --result malt_moisture=4.4 --result extract_fine=81.4 --result colour=3.4
+          culmbin --book "$book" spec add "lager 2025" --clause "extract_fine>=80.5" \
+            --clause "colour=2.5..4.5"
+          culmbin --book "$book" spec show "lager 2025"
+          culmbin --book "$book" lot show L-1 --against "lager 2025"
+          culmbin --book "$book" lot list
+          culmbin --book "$book" blend --draw L-1:20 --against "lager 2025"
+          culmbin --book "$book" --on 2025-06-02 contract add C-1 BRWY --spec "lager 2025" \
+            --tonnes 2400 --price 398.00 --from 2025-10-01 --to 2026-09-30
+          culmbin --book "$book" contract sign C-1
+          culmbin --book "$book" --on 2025-11-20 call add K-1 C-1 --tonnes 200 \
+            --from 2026-04-06 --to 2026-04-10
+          culmbin --book "$book" call list
+          culmbin --book "$book" --on 2025-11-20 ship allocate S-1 C-1 L-1 --tonnes 28
+          culmbin --book "$book" --on 2025-11-20 ship load S-1 --tonnes 28 --moisture 4.4
+          culmbin --book "$book" ship despatch S-1
+          culmbin --book "$book" ship show S-1
+          culmbin --book "$book" ship list
+          culmbin --book "$book" --on 2025-11-20 ship diary
+          culmbin --book "$book" contract show C-1
+          culmbin --book "$book" trace forward W-1
+          culmbin --book "$book" trace back S-1
+          culmbin --book "$book" --on 2025-09-30 report intake
+          culmbin --book "$book" --on 2025-09-30 report rejections
+          culmbin --book "$book" --on 2025-09-30 report grower HOLB
+          culmbin --book "$book" report plant
+          culmbin --book "$book" report process
+          culmbin --book "$book" report balance
+          culmbin --book "$book" report stock
+          culmbin --book "$book" report bins
+          culmbin --book "$book" report laboratory
+          culmbin --book "$book" report contracts
+          culmbin --book "$book" --on 2026-04-30 report calls
+          culmbin --book "$book" find L-1
+          culmbin --book "$book" registers
+          culmbin --book "$book" status
+          culmbin --book "$book" backup /tmp/walk-backup.sqlite3
+          culmbin --book "$book" export /tmp/walk-csv
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]" -c constraints.txt
+      - run: python -m pytest -q --cov --cov-report=json --cov-report=term-missing
+      - run: python -m culmbin.tools.coverage_gate --floor 95 --file-floor 80 --worst 5
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage.json
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: python -m pip install --upgrade pip build
+      - run: python -m build
+      - run: python -m pip install dist/*.whl
+      - run: python -c "import culmbin; print(culmbin.__version__)"
+      - run: python -m culmbin.tools.smoke --quiet
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist

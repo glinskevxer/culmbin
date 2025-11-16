@@ -40,11 +40,19 @@ def _window(context: Context, opens: dt.datetime | None, closes: dt.datetime | N
 def _window_options(command: F) -> F:
     """Add `--from` and `--to` to a command, since five of them want them."""
     dated = click.option(
-        "--from", "opens", type=click.DateTime(formats=["%Y-%m-%d"]), default=None
+        "--from",
+        "opens",
+        type=click.DateTime(formats=["%Y-%m-%d"]),
+        default=None,
+        help="the first day. Defaults to the first of the month.",
     )(command)
-    return click.option("--to", "closes", type=click.DateTime(formats=["%Y-%m-%d"]), default=None)(
-        dated
-    )
+    return click.option(
+        "--to",
+        "closes",
+        type=click.DateTime(formats=["%Y-%m-%d"]),
+        default=None,
+        help="the last day. Defaults to the day being worked as.",
+    )(dated)
 
 
 @click.group()
@@ -82,7 +90,14 @@ def report_grower(
 
 
 @report.command("floor")
-@click.option("--at", "celsius", type=float, default=16.0, show_default=True)
+@click.option(
+    "--at",
+    "celsius",
+    type=float,
+    default=16.0,
+    show_default=True,
+    help="the box temperature the clock is run at.",
+)
 @pass_context
 def report_floor(context: Context, celsius: float) -> None:
     """The germination floor, worst first."""
@@ -132,7 +147,7 @@ def report_laboratory(context: Context) -> None:
 
 
 @report.command("contracts")
-@click.option("--customer", default=None)
+@click.option("--customer", default=None, help="only this customer.")
 @pass_context
 def report_contracts(context: Context, customer: str | None) -> None:
     """Where the contracts stand, in all three tonnages."""

@@ -46,9 +46,17 @@ def spec() -> None:
 @spec.command("add")
 @click.argument("name")
 @click.option("--clause", "clauses", multiple=True, required=True, help="colour<=4.5, repeatable.")
-@click.option("--variety", "varieties", multiple=True, help="a variety the specification names.")
 @click.option(
-    "--material", type=click.Choice([item.value for item in Material]), default=Material.MALT.value
+    "--variety",
+    "varieties",
+    multiple=True,
+    help="a variety the specification names, repeatable.",
+)
+@click.option(
+    "--material",
+    type=click.Choice([item.value for item in Material]),
+    default=Material.MALT.value,
+    help="what the specification is about.",
 )
 @pass_context
 def spec_add(
@@ -150,7 +158,7 @@ def bin_receive(context: Context, code: str, piece: str, tonnes: float, moisture
 @malt_bin.command("issue")
 @click.argument("code")
 @click.option("--tonnes", type=float, required=True)
-@click.option("--note", default="")
+@click.option("--note", default="", help="where the malt went.")
 @pass_context
 def bin_issue(context: Context, code: str, tonnes: float, note: str) -> None:
     """Draw malt out of a bin."""
@@ -178,7 +186,12 @@ def bin_clean(context: Context, code: str) -> None:
 
 
 @malt_bin.command("list")
-@click.option("--state", type=click.Choice([item.value for item in BinState]), default=None)
+@click.option(
+    "--state",
+    type=click.Choice([item.value for item in BinState]),
+    default=None,
+    help="only bins in this state.",
+)
 @pass_context
 def bin_list(context: Context, state: str | None) -> None:
     """List the bins, or print the bin page when no state is asked for."""
@@ -221,7 +234,7 @@ def lot_seal(context: Context, code: str, malt_bin_code: str) -> None:
 @click.argument("code")
 @click.argument("reference")
 @click.option("--result", "results", multiple=True, required=True, help="code=value, repeatable.")
-@click.option("--note", default="")
+@click.option("--note", default="", help="anything the laboratory wrote alongside.")
 @pass_context
 def lot_certify(
     context: Context, code: str, reference: str, results: tuple[str, ...], note: str
@@ -269,7 +282,7 @@ def lot_list(context: Context, variety: str | None, uncertified: bool) -> None:
 
 @click.command()
 @click.option("--draw", "draws", multiple=True, required=True, help="LOT:TONNES, repeatable.")
-@click.option("--against", "specification", default=None)
+@click.option("--against", "specification", default=None, help="assess the blend against this.")
 @pass_context
 def blend(context: Context, draws: tuple[str, ...], specification: str | None) -> None:
     """Say what a set of lots would assay if they were run together.

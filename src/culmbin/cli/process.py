@@ -235,7 +235,7 @@ def piece_reading(context: Context, code: str, stage: str, hours: float, celsius
 @click.option("--tonnes", type=float, required=True, help="steep-out weight.")
 @click.option("--moisture", type=float, required=True, help="steep-out moisture.")
 @click.option("--depth", type=float, required=True, help="bed depth in centimetres.")
-@click.option("--share", is_flag=True)
+@click.option("--share", is_flag=True, help="allow a second piece in the same bed.")
 @pass_context
 def piece_cast(
     context: Context,
@@ -254,7 +254,7 @@ def piece_cast(
 @piece.command("kiln")
 @click.argument("code")
 @click.option("--into", required=True)
-@click.option("--share", is_flag=True)
+@click.option("--share", is_flag=True, help="allow a second piece on the same kiln.")
 @pass_context
 def piece_kiln(context: Context, code: str, into: str, share: bool) -> None:
     """Move a piece off the floor and onto a kiln."""
@@ -295,8 +295,13 @@ def piece_show(context: Context, code: str) -> None:
 
 
 @piece.command("list")
-@click.option("--stage", type=click.Choice([item.value for item in PieceStage]), default=None)
-@click.option("--variety", default=None)
+@click.option(
+    "--stage",
+    type=click.Choice([item.value for item in PieceStage]),
+    default=None,
+    help="only pieces at this stage.",
+)
+@click.option("--variety", default=None, help="only pieces of this variety.")
 @pass_context
 def piece_list(context: Context, stage: str | None, variety: str | None) -> None:
     """List the pieces."""

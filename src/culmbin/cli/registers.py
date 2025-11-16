@@ -39,7 +39,12 @@ def party() -> None:
 @party.command("add")
 @click.argument("code")
 @click.argument("name")
-@click.option("--role", type=click.Choice([item.value for item in Role]), required=True)
+@click.option(
+    "--role",
+    type=click.Choice([item.value for item in Role]),
+    required=True,
+    help="what they are to us.",
+)
 @click.option("--holding", default=None, help="the holding number, for a grower.")
 @click.option("--note", default="", help="anything worth writing down.")
 @pass_context
@@ -64,7 +69,12 @@ def party_close(context: Context, code: str) -> None:
 
 
 @party.command("list")
-@click.option("--role", type=click.Choice([item.value for item in Role]), default=None)
+@click.option(
+    "--role",
+    type=click.Choice([item.value for item in Role]),
+    default=None,
+    help="only this role.",
+)
 @click.option("--trading/--all", default=False, help="only those still trading today.")
 @pass_context
 def party_list(context: Context, role: str | None, trading: bool) -> None:
@@ -114,13 +124,17 @@ def variety() -> None:
 @variety.command("add")
 @click.argument("code")
 @click.argument("name")
-@click.option("--habit", type=click.Choice([item.value for item in Habit]), default="spring")
+@click.option(
+    "--habit",
+    type=click.Choice([item.value for item in Habit]),
+    default="spring",
+    help="spring or winter barley, which are contracted separately.",
+)
 @click.option(
     "--approval",
-    type=click.Choice(
-        [Approval.APPROVED.value, Approval.PROVISIONAL.value, Approval.UNDER_TEST.value]
-    ),
+    type=click.Choice(NEW_APPROVALS),
     default=Approval.UNDER_TEST.value,
+    help="how far up the approved list it has got.",
 )
 @pass_context
 def variety_add(context: Context, code: str, name: str, habit: str, approval: str) -> None:
@@ -202,7 +216,12 @@ def vessel() -> None:
 @click.option("--charge", type=float, default=None, help="tonnes, for a steep.")
 @click.option("--area", type=float, default=None, help="square metres, for a bed.")
 @click.option("--depth", type=float, default=None, help="centimetres, for a bed.")
-@click.option("--commissioned", type=click.DateTime(formats=["%Y-%m-%d"]), default=None)
+@click.option(
+    "--commissioned",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=None,
+    help="when it went into service. Defaults to today.",
+)
 @pass_context
 def vessel_add(
     context: Context,
@@ -246,7 +265,12 @@ def vessel_retire(context: Context, code: str) -> None:
 
 
 @vessel.command("list")
-@click.option("--kind", type=click.Choice([item.value for item in VesselKind]), default=None)
+@click.option(
+    "--kind",
+    type=click.Choice([item.value for item in VesselKind]),
+    default=None,
+    help="only this kind of vessel.",
+)
 @pass_context
 def vessel_list(context: Context, kind: str | None) -> None:
     """List the plant."""
