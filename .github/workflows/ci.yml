@@ -46,7 +46,9 @@ jobs:
       - run: python -m culmbin.tools.check_sql
       - run: python -m culmbin.tools.check_tests
       - run: python -m culmbin.tools.check_wiring
+      - run: python -m culmbin.tools.check_package
       - run: python -m culmbin.tools.check_workflow
+      - run: python -m culmbin.tools.release_check
 
   tests:
     runs-on: ubuntu-latest
