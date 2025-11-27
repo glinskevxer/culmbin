@@ -21,15 +21,13 @@ from culmbin.tools.sources import relative, report, source_modules
 
 SQL_WORDS = ("SELECT ", "INSERT ", "UPDATE ", "DELETE ", "CREATE ", "PRAGMA ", "DROP ")
 
-ALLOWED_INTERPOLATION = frozenset(
-    {
-        "culmbin.store.book",
-        "culmbin.store.export",
-        "culmbin.store.search",
-        "culmbin.cli.main",
-    }
-)
-"""The modules that interpolate a table name, each of which checks it first."""
+ALLOWED_INTERPOLATION = frozenset({"culmbin.store.book"})
+"""The one module that interpolates a table name, and it checks it first.
+
+There used to be four. The other three were reading PRAGMAs and counting
+rows, and every one of them was building the statement itself, so the gate
+was in four places and could rot in three of them. They ask the book now.
+"""
 
 SAFE_NAMES = frozenset({"_COLUMNS", "_CALL_COLUMNS", "where", "clauses"})
 """Module constants that are literal column lists rather than values.

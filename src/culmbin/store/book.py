@@ -189,10 +189,59 @@ class Book:
 
     def columns(self, table: str) -> tuple[str, ...]:
         """Every column of a table, in the order it was declared."""
+        return tuple(str(row["name"]) for row in self.column_details(table))
+
+    def column_details(self, table: str) -> list[sqlite3.Row]:
+        """Every column of a table with its type, nullability and key.
+
+        A PRAGMA takes an identifier and not a parameter, so it goes through
+        the same gate as everything else that has to interpolate one, and
+        the caller never has to build a statement of its own.
+        """
         rows = self.query(f'PRAGMA table_info("{_identifier(table)}")')
         if not rows:
             raise NotFoundError(f"no table called {table!r}")
+        return rows
+
+    def foreign_keys(self, table: str) -> list[sqlite3.Row]:
+        """Every foreign key a table declares."""
+        return self.query(f'PRAGMA foreign_key_list("{_identifier(table)}")')
+
+    def indexes(self, table: str) -> list[sqlite3.Row]:
+        """Every index on a table, leaving out the ones SQLite made itself."""
+        return [
+            row
+            for row in self.query(f'PRAGMA index_list("{_identifier(table)}")')
+            if not str(row["name"]).startswith("sqlite_autoindex")
+        ]
+
+    def index_columns(self, index: str) -> tuple[str, ...]:
+        """The columns an index covers, in order."""
+        rows = self.query(f'PRAGMA index_info("{_identifier(index)}")')
         return tuple(str(row["name"]) for row in rows)
+
+    def lookup(
+        self, table: str, key: str, columns: Sequence[str], value: object
+    ) -> sqlite3.Row | None:
+        """One row of a table by its key, or nothing.
+
+        The table, the key and the columns are identifiers and cannot be
+        parameters, so they are checked and quoted here. The value the caller
+        is looking for is a parameter, which is the whole point.
+        """
+        wanted = ", ".join(f'"{_identifier(column)}"' for column in columns)
+        return self.first(
+            f'SELECT {wanted} FROM "{_identifier(table)}" WHERE "{_identifier(key)}" = ?',
+            (value,),
+        )
+
+    def row_count(self, table: str) -> int:
+        """How many rows a table holds."""
+        return int(self.scalar(f'SELECT count(*) FROM "{_identifier(table)}"') or 0)
+
+    def rows_of(self, table: str) -> list[sqlite3.Row]:
+        """Every row of a table, for the export and for nothing else."""
+        return self.query(f'SELECT * FROM "{_identifier(table)}"')
 
     def backup_to(self, path: str | Path) -> None:
         """Copy the whole book somewhere, through SQLite rather than the filesystem.

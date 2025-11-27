@@ -43,7 +43,11 @@ def contract() -> None:
 @click.option("--tonnes", type=float, required=True)
 @click.option("--price", required=True, help="per contract tonne.")
 @click.option(
-    "--moisture", type=float, default=4.5, show_default=True, help="the contract moisture."
+    "--moisture",
+    type=float,
+    default=4.5,
+    show_default=True,
+    help="the moisture the contract tonne is written at.",
 )
 @click.option(
     "--from",

@@ -56,8 +56,7 @@ def searchable() -> tuple[str, ...]:
 def _look(book: Book, kind: str, code: str) -> Found:
     """Look in one register, giving back an empty result when nothing matches."""
     table, key, extra = _REGISTERS[kind]
-    columns = ", ".join((key, *extra))
-    row = book.first(f'SELECT {columns} FROM "{table}" WHERE {key} = ?', (code,))
+    row = book.lookup(table, key, (key, *extra), code)
     if row is None:
         return Found("", "", "")
     detail = " ".join(str(row[column]) for column in extra)
@@ -82,6 +81,5 @@ def counts(book: Book) -> Sequence[tuple[str, int]]:
     """
     out = []
     for kind, (table, _, _) in _REGISTERS.items():
-        total = book.scalar(f'SELECT count(*) FROM "{table}"')
-        out.append((kind, int(total or 0)))
+        out.append((kind, book.row_count(table)))
     return out

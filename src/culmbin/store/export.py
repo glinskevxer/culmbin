@@ -34,7 +34,7 @@ def export_book(book: Book, into: Path) -> tuple[Path, ...]:
         if table in SKIP:
             continue
         columns = book.columns(table)
-        rows = book.query(f'SELECT * FROM "{table}"')
+        rows = book.rows_of(table)
         path = into / f"{table}.csv"
         with path.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)

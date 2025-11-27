@@ -46,7 +46,6 @@ def test_the_column_lists_are_the_only_safe_names() -> None:
     assert "code" not in check_sql.SAFE_NAMES
 
 
-def test_only_four_modules_may_interpolate_a_table_name() -> None:
-    """A fifth has to be argued for, which is the point of the list."""
-    assert len(check_sql.ALLOWED_INTERPOLATION) == 4
-    assert "culmbin.store.book" in check_sql.ALLOWED_INTERPOLATION
+def test_only_one_module_may_interpolate_a_table_name() -> None:
+    """A second has to be argued for, which is the point of the list."""
+    assert frozenset({"culmbin.store.book"}) == check_sql.ALLOWED_INTERPOLATION

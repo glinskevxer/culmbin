@@ -49,6 +49,9 @@ jobs:
       - run: python -m culmbin.tools.check_package
       - run: python -m culmbin.tools.check_workflow
       - run: python -m culmbin.tools.release_check
+      - run: python -m culmbin.tools.schema_dump --check
+      - run: python -m culmbin.tools.build_docs --check
+      - run: python -m culmbin.tools.build_glossary --check
 
   tests:
     runs-on: ubuntu-latest

@@ -91,7 +91,7 @@ def status(context: Context) -> None:
     if behind:
         click.echo(f"pending   {len(behind)} migrations")
     for table in book.tables():
-        count = book.scalar(f'SELECT count(*) FROM "{table}"')
+        count = book.row_count(table)
         if count:
             click.echo(f"{table:<24}{count:>8}")
 
