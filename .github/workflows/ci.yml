@@ -43,6 +43,7 @@ jobs:
       - run: python -m culmbin.tools.check_layers
       - run: python -m culmbin.tools.check_messages
       - run: python -m culmbin.tools.check_naming
+      - run: python -m culmbin.tools.check_readme
       - run: python -m culmbin.tools.check_sql
       - run: python -m culmbin.tools.check_tests
       - run: python -m culmbin.tools.check_wiring
