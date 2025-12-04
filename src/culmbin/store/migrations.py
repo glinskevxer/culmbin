@@ -517,6 +517,29 @@ CREATE TABLE piece_source (
 CREATE INDEX piece_source_by_ticket ON piece_source (ticket, piece);
 """
 
+_SILOS = """
+CREATE TABLE silo (
+    code            TEXT PRIMARY KEY,
+    capacity_tonnes REAL NOT NULL,
+    mixed           INTEGER NOT NULL DEFAULT 0,
+    commissioned    TEXT,
+    CHECK (capacity_tonnes > 0.0),
+    CHECK (mixed IN (0, 1))
+);
+
+CREATE TABLE silo_receipt (
+    silo     TEXT NOT NULL REFERENCES silo (code) ON DELETE CASCADE,
+    ticket   TEXT PRIMARY KEY REFERENCES delivery (ticket),
+    tonnes   REAL NOT NULL,
+    moisture REAL NOT NULL,
+    on_day   TEXT NOT NULL,
+    CHECK (tonnes > 0.0),
+    CHECK (moisture >= 0.0 AND moisture < 60.0)
+);
+
+CREATE INDEX silo_receipt_by_silo ON silo_receipt (silo, ticket);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -531,6 +554,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(11, "specifications and their clauses", _SPECS),
     Migration(12, "contracts, call-offs and shipments", _SALES),
     Migration(13, "which lorry loads a piece was charged from", _SOURCES),
+    Migration(14, "barley silos and what was tipped into them", _SILOS),
 )
 """Every migration this package knows about, in the order they are applied.
 
