@@ -25,6 +25,7 @@ from culmbin.report.process import balance_page
 from culmbin.report.sales import call_page, contract_page
 from culmbin.report.stock import bin_page, laboratory_page, stock_page
 from culmbin.report.walks import investigation_page, recall_page
+from culmbin.report.yard import yard_page
 from culmbin.units.season import Window
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -102,6 +103,13 @@ def report_grower(
 def report_floor(context: Context, celsius: float) -> None:
     """The germination floor, worst first."""
     click.echo(shift_sheet(context.book(), at_celsius=celsius), nl=False)
+
+
+@report.command("yard")
+@pass_context
+def report_yard(context: Context) -> None:
+    """What is in the silos and what is still in the intake pit."""
+    click.echo(yard_page(context.book()), nl=False)
 
 
 @report.command("plant")

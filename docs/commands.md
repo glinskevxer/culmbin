@@ -509,6 +509,10 @@ Every load that went back, with the reason on each.
 
 Every lot, with what is free on it.
 
+## `culmbin report yard`
+
+What is in the silos and what is still in the intake pit.
+
 ## `culmbin ship`
 
 Malt going out of the gate.
@@ -562,6 +566,51 @@ Weigh a load and take the malt out of the bin.
 ## `culmbin ship show CODE`
 
 Say everything about one shipment.
+
+## `culmbin silo`
+
+The silos barley is kept in between the weighbridge and the steep.
+
+## `culmbin silo add CODE`
+
+Put a silo in the register.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--capacity` | yes | tonnes. |
+
+## `culmbin silo draw CODE PIECE`
+
+Charge a steep out of a silo, writing down where the barley came from.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--tonnes` | yes | the steep charge. |
+| `--variety` | yes | what the piece is to be. |
+| `--crop` | yes | the crop year. |
+| `--style` | yes | what it is to become. |
+| `--steep` | yes | the vessel it goes into. |
+| `--programme` | yes | the steep programme. |
+| `--schedule` | yes | the germination schedule. |
+| `--curve` | yes | the kiln curve. |
+| `--share` |  | allow a second piece in the same vessel. |
+| `--dry-run` |  | say what it would carry and write nothing. |
+
+## `culmbin silo list`
+
+Print the yard page.
+
+## `culmbin silo show CODE`
+
+Say what is in a silo and which loads it came off.
+
+## `culmbin silo sweep CODE`
+
+Take the mixed mark off a silo that has been emptied and swept out.
+
+## `culmbin silo tip CODE TICKET`
+
+Tip an accepted load into a silo.
 
 ## `culmbin spec`
 
