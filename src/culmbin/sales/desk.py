@@ -6,9 +6,10 @@ either a step after it or a way of looking at what it produced.
 The four checks in `allocate`, and why each one is here rather than anywhere
 else:
 
-**Certified.** A lot with no analysis cannot be assessed, and shipping it is
-shipping malt nobody has looked at. This is not the same as a lot that
-failed: it is a lot that was never asked.
+**Certified, and not withdrawn.** A lot with no analysis cannot be assessed,
+and shipping it is shipping malt nobody has looked at. A lot whose analysis
+has been superseded by a retest is worse: somebody has looked, found
+something, and the certificate still quotes the numbers they withdrew.
 
 **In specification.** The lot's own analysis is assessed against the
 specification the *contract* names, on the basis each clause is written on.
@@ -33,7 +34,7 @@ from culmbin.errors import ConflictError, StateError
 from culmbin.model.enums import Conformance, ShipmentState
 from culmbin.model.sales import Contract, Shipment
 from culmbin.model.spec import Assessment
-from culmbin.store.analyses import get_analysis
+from culmbin.store.analyses import current, get_analysis, is_superseded
 from culmbin.store.bins import issue
 from culmbin.store.book import Book
 from culmbin.store.contracts import get_call, get_contract, list_contracts, position
@@ -116,6 +117,12 @@ def allocate(
     held_lot = get_lot(book, lot)
     if not held_lot.certified:
         raise StateError(f"{lot} has no analysis, so it cannot be shipped")
+    assert held_lot.analysis is not None
+    if is_superseded(book, held_lot.analysis):
+        raise StateError(
+            f"{lot} is certified on {held_lot.analysis}, which the laboratory withdrew "
+            f"in favour of {current(book, held_lot.analysis)}"
+        )
 
     assessment = assess_lot(book, lot, held_contract.specification)
     if assessment.conformance is not Conformance.PASS:

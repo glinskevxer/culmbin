@@ -540,6 +540,13 @@ CREATE TABLE silo_receipt (
 CREATE INDEX silo_receipt_by_silo ON silo_receipt (silo, ticket);
 """
 
+_RETESTS = """
+ALTER TABLE analysis ADD COLUMN supersedes TEXT REFERENCES analysis (reference);
+
+CREATE UNIQUE INDEX analysis_supersedes_once ON analysis (supersedes)
+    WHERE supersedes IS NOT NULL;
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -555,6 +562,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(12, "contracts, call-offs and shipments", _SALES),
     Migration(13, "which lorry loads a piece was charged from", _SOURCES),
     Migration(14, "barley silos and what was tipped into them", _SILOS),
+    Migration(15, "which analysis a retest replaces", _RETESTS),
 )
 """Every migration this package knows about, in the order they are applied.
 

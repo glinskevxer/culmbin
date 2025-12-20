@@ -12,11 +12,17 @@ from culmbin.model.results import Analysis, Result, analysis_of
 from culmbin.store.analyses import (
     add_result,
     analysis_note,
+    chain_of,
     count_analyses,
+    current,
     find_analysis,
     get_analysis,
+    is_superseded,
     list_analyses,
     save_analysis,
+    supersede,
+    superseded_by,
+    supersedes,
 )
 from culmbin.store.book import Book
 
@@ -156,3 +162,73 @@ def test_counting_narrows_by_material(book: Book) -> None:
 def test_an_empty_book_counts_nothing(book: Book) -> None:
     assert count_analyses(book) == 0
     assert list_analyses(book) == ()
+
+
+def test_a_retest_says_what_it_replaces(book: Book) -> None:
+    save_analysis(book, malt("M-1", Result("colour", 5.5)))
+    supersede(book, "M-1", malt("M-2", Result("colour", 5.9)))
+    assert superseded_by(book, "M-1") == "M-2"
+    assert supersedes(book, "M-2") == "M-1"
+    assert is_superseded(book, "M-1")
+    assert not is_superseded(book, "M-2")
+
+
+def test_the_first_analysis_stays_exactly_as_it_was_sent(book: Book) -> None:
+    save_analysis(book, malt("M-1", Result("colour", 5.5)))
+    supersede(book, "M-1", malt("M-2", Result("colour", 5.9)))
+    assert get_analysis(book, "M-1")["colour"].value == pytest.approx(5.5)
+
+
+def test_an_analysis_cannot_supersede_itself(book: Book) -> None:
+    save_analysis(book, malt("M-1"))
+    with pytest.raises(ConflictError, match="supersede itself"):
+        supersede(book, "M-1", malt("M-1"))
+
+
+def test_a_retest_of_another_material_is_refused(book: Book) -> None:
+    save_analysis(book, malt("M-1"))
+    with pytest.raises(ConflictError, match="barley analysis"):
+        supersede(book, "M-1", barley("B-1"))
+
+
+def test_one_analysis_can_be_superseded_once(book: Book) -> None:
+    """A second retest replaces the first retest, not the original."""
+    save_analysis(book, malt("M-1"))
+    supersede(book, "M-1", malt("M-2"))
+    with pytest.raises(ConflictError, match="already superseded"):
+        supersede(book, "M-1", malt("M-3"))
+
+
+def test_a_retest_of_a_retest_is_a_chain(book: Book) -> None:
+    save_analysis(book, malt("M-1"))
+    supersede(book, "M-1", malt("M-2"))
+    supersede(book, "M-2", malt("M-3"))
+    assert chain_of(book, "M-2") == ("M-1", "M-2", "M-3")
+
+
+def test_the_current_analysis_is_the_end_of_the_chain(book: Book) -> None:
+    save_analysis(book, malt("M-1"))
+    supersede(book, "M-1", malt("M-2"))
+    supersede(book, "M-2", malt("M-3"))
+    assert current(book, "M-1") == "M-3"
+    assert current(book, "M-3") == "M-3"
+
+
+def test_an_analysis_nobody_retested_is_its_own_chain(book: Book) -> None:
+    save_analysis(book, malt("M-1"))
+    assert chain_of(book, "M-1") == ("M-1",)
+    assert current(book, "M-1") == "M-1"
+    assert supersedes(book, "M-1") is None
+
+
+def test_a_failed_retest_leaves_the_original_alone(book: Book) -> None:
+    save_analysis(book, malt("M-1"))
+    save_analysis(book, malt("M-2"))
+    with pytest.raises(ConflictError):
+        supersede(book, "M-1", malt("M-2"))
+    assert superseded_by(book, "M-1") is None
+
+
+def test_asking_about_an_analysis_that_is_not_there_is_refused(book: Book) -> None:
+    with pytest.raises(NotFoundError):
+        supersedes(book, "M-9")

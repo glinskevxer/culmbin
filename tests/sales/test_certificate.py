@@ -11,8 +11,10 @@ import datetime as dt
 import pytest
 
 from culmbin.errors import StateError
-from culmbin.model.enums import Conformance
+from culmbin.model.enums import Conformance, Material
+from culmbin.model.results import Result, analysis_of
 from culmbin.sales.certificate import build, render, write
+from culmbin.store.analyses import supersede
 from culmbin.store.book import Book
 from tests.support.books import a_lot
 
@@ -137,3 +139,23 @@ def test_rendering_twice_gives_the_same_page(desk: Book) -> None:
     """Nothing in here reads a clock of its own."""
     certificate = build(desk, "L-CLEAN", "lager 2025")
     assert render(certificate, ISSUED) == render(certificate, ISSUED)
+
+
+def test_a_withdrawn_analysis_is_marked_at_the_top(desk: Book) -> None:
+    """A withdrawn certificate that looks like a current one is the worst thing here."""
+    supersede(
+        desk,
+        "M-CLEAN",
+        analysis_of("M-RETEST", Material.MALT, ISSUED, [Result("malt_moisture", 4.3)]),
+    )
+    text = write(desk, "L-CLEAN", ISSUED)
+    assert "WITHDRAWN" in text
+    assert "M-RETEST" in text
+    assert text.splitlines()[3].startswith("WITHDRAWN")
+
+
+def test_a_certificate_that_stands_is_not_marked(desk: Book) -> None:
+    certificate = build(desk, "L-CLEAN")
+    assert not certificate.withdrawn
+    assert certificate.withdrawn_for is None
+    assert "WITHDRAWN" not in write(desk, "L-CLEAN", ISSUED)

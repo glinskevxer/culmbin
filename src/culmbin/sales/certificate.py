@@ -11,6 +11,9 @@ went wrong. So:
   that passed
 - a lot out of a mixed bin prints its varieties, plural, and does not print
   a variety line at all
+- an analysis the laboratory has replaced is marked at the top and not
+  quietly reprinted, because a withdrawn certificate that looks like a
+  current one is the worst thing this module could produce
 
 The certificate is generated from the lot's own analysis and, if the caller
 gives one, assessed against a specification. Assessing is optional because
@@ -29,7 +32,7 @@ from culmbin.model.lots import MaltLot
 from culmbin.model.results import Analysis
 from culmbin.model.spec import Assessment, Specification
 from culmbin.report.layout import Align, Column, block, heading, page, pairs, table
-from culmbin.store.analyses import get_analysis
+from culmbin.store.analyses import current, get_analysis, is_superseded
 from culmbin.store.book import Book
 from culmbin.store.lots import get_lot
 from culmbin.store.specs import get_specification
@@ -50,6 +53,12 @@ class Certificate:
     analysis: Analysis
     specification: Specification | None = None
     assessment: Assessment | None = None
+    withdrawn_for: str | None = None
+
+    @property
+    def withdrawn(self) -> bool:
+        """Whether the laboratory has replaced this analysis with a retest."""
+        return self.withdrawn_for is not None
 
     @property
     def conformance(self) -> Conformance | None:
@@ -68,11 +77,16 @@ def build(book: Book, lot: str, specification: str | None = None) -> Certificate
     if held.analysis is None:
         raise StateError(f"{lot} has no analysis, so there is no certificate to write")
     analysis = get_analysis(book, held.analysis)
+    replaced = current(book, held.analysis) if is_superseded(book, held.analysis) else None
     if specification is None:
-        return Certificate(lot=held, analysis=analysis)
+        return Certificate(lot=held, analysis=analysis, withdrawn_for=replaced)
     spec = get_specification(book, specification)
     return Certificate(
-        lot=held, analysis=analysis, specification=spec, assessment=spec.assess(analysis)
+        lot=held,
+        analysis=analysis,
+        specification=spec,
+        assessment=spec.assess(analysis),
+        withdrawn_for=replaced,
     )
 
 
@@ -134,6 +148,9 @@ def render(certificate: Certificate, on: dt.date) -> str:
 
     sections = [
         heading(f"certificate of analysis {lot.code}"),
+        [f"WITHDRAWN: this analysis was replaced by {certificate.withdrawn_for}."]
+        if certificate.withdrawn
+        else [],
         pairs(facts),
         block(
             "analysis",

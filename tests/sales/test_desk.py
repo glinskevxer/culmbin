@@ -12,7 +12,8 @@ from decimal import Decimal
 import pytest
 
 from culmbin.errors import ConflictError, NotFoundError, SegregationError, StateError
-from culmbin.model.enums import ContractState, ShipmentState
+from culmbin.model.enums import Basis, ContractState, Material, ShipmentState
+from culmbin.model.results import Result, analysis_of
 from culmbin.model.sales import Call, Contract
 from culmbin.sales.desk import (
     allocate,
@@ -24,6 +25,7 @@ from culmbin.sales.desk import (
     load,
     shipped_in,
 )
+from culmbin.store.analyses import supersede
 from culmbin.store.bins import contents_of
 from culmbin.store.book import Book
 from culmbin.store.contracts import add_call, add_contract, position, set_state
@@ -235,3 +237,38 @@ def test_what_shipped_in_a_week_is_what_actually_left(desk: Book) -> None:
 def test_an_empty_lot_says_so(desk: Book) -> None:
     allocate(desk, "S-1", "C-2025-031", "L-CLEAN", 60.0, ON)
     assert availability(desk, "L-CLEAN").empty
+
+
+def test_a_lot_on_a_withdrawn_analysis_cannot_be_shipped(desk: Book) -> None:
+    """Somebody has looked, found something, and the certificate still quotes it."""
+    supersede(
+        desk,
+        "M-CLEAN",
+        analysis_of(
+            "M-RETEST",
+            Material.MALT,
+            dt.date(2025, 11, 14),
+            [
+                Result("malt_moisture", 4.2),
+                Result("extract_fine", 81.4, Basis.DRY),
+                Result("colour", 3.4),
+            ],
+        ),
+    )
+    with pytest.raises(StateError, match="withdrew"):
+        allocate(desk, "S-1", "C-2025-031", "L-CLEAN", 28.0, ON)
+
+
+def test_the_refusal_names_the_retest(desk: Book) -> None:
+    supersede(
+        desk,
+        "M-CLEAN",
+        analysis_of(
+            "M-RETEST",
+            Material.MALT,
+            dt.date(2025, 11, 14),
+            [Result("malt_moisture", 4.2)],
+        ),
+    )
+    with pytest.raises(StateError, match="M-RETEST"):
+        allocate(desk, "S-1", "C-2025-031", "L-CLEAN", 28.0, ON)
