@@ -19,6 +19,7 @@ import sqlite3
 from culmbin.errors import ConflictError, NotFoundError
 from culmbin.model.intake import Purchase
 from culmbin.store.book import Book
+from culmbin.store.query import narrowing, optional
 from culmbin.store.rows import (
     as_count,
     as_date,
@@ -81,26 +82,15 @@ def get_purchase(book: Book, code: str) -> Purchase:
 
 def find_purchase(book: Book, code: str) -> Purchase | None:
     """One purchase, or nothing."""
-    try:
-        return get_purchase(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_purchase(book, code))
 
 
 def list_purchases(
     book: Book, party: str | None = None, crop_year: int | None = None
 ) -> tuple[Purchase, ...]:
     """Every purchase, in code order, narrowed by grower and by crop."""
-    clauses = []
-    params: list[object] = []
-    if party is not None:
-        clauses.append("party = ?")
-        params.append(party)
-    if crop_year is not None:
-        clauses.append("crop_year = ?")
-        params.append(crop_year)
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
-    rows = book.query(f"SELECT {_COLUMNS} FROM purchase{where} ORDER BY code", params)
+    narrow = narrowing().maybe("party = ?", party).maybe("crop_year = ?", crop_year)
+    rows = book.query(f"SELECT {_COLUMNS} FROM purchase{narrow.where} ORDER BY code", narrow.values)
     return tuple(_purchase(row) for row in rows)
 
 

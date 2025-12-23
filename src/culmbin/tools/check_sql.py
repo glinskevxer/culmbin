@@ -30,11 +30,12 @@ was in four places and could rot in three of them. They ask the book now.
 """
 
 SAFE_NAMES = frozenset({"_COLUMNS", "_CALL_COLUMNS", "where", "clauses"})
-"""Module constants that are literal column lists rather than values.
+"""Names that are clause text rather than values.
 
-They are literals written once at the top of a module and never built out of
-anything a caller supplied, which is why interpolating them is not the thing
-this check is about.
+`_COLUMNS` and `_CALL_COLUMNS` are literal column lists written once at the
+top of a module. `where` is a `Narrowing.where`, which is a clause built out
+of literals and question marks with every value kept in `values` and passed
+as a parameter. Neither is the thing this check is about.
 """
 
 
@@ -52,6 +53,8 @@ def _interpolations(node: ast.JoinedStr) -> list[str]:
             inner = value.value
             if isinstance(inner, ast.Name):
                 out.append(inner.id)
+            elif isinstance(inner, ast.Attribute):
+                out.append(inner.attr)
             elif isinstance(inner, ast.Call):
                 out.append(_call_name(inner))
             else:

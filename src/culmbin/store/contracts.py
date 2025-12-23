@@ -21,6 +21,7 @@ from culmbin.errors import ConflictError, NotFoundError, StateError
 from culmbin.model.enums import ContractState
 from culmbin.model.sales import Call, Contract
 from culmbin.store.book import Book
+from culmbin.store.query import narrowing, optional
 from culmbin.store.rows import (
     as_date,
     as_enum,
@@ -136,10 +137,7 @@ def get_contract(book: Book, code: str) -> Contract:
 
 def find_contract(book: Book, code: str) -> Contract | None:
     """One contract, or nothing."""
-    try:
-        return get_contract(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_contract(book, code))
 
 
 def set_state(book: Book, code: str, state: ContractState) -> Contract:
@@ -162,16 +160,8 @@ def list_contracts(
     book: Book, customer: str | None = None, state: ContractState | None = None
 ) -> tuple[Contract, ...]:
     """Every contract, in code order, narrowed by customer and by state."""
-    clauses = []
-    params: list[object] = []
-    if customer is not None:
-        clauses.append("customer = ?")
-        params.append(customer)
-    if state is not None:
-        clauses.append("state = ?")
-        params.append(state)
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
-    rows = book.query(f"SELECT {_COLUMNS} FROM contract{where} ORDER BY code", params)
+    narrow = narrowing().maybe("customer = ?", customer).maybe("state = ?", state)
+    rows = book.query(f"SELECT {_COLUMNS} FROM contract{narrow.where} ORDER BY code", narrow.values)
     return tuple(_contract(row) for row in rows)
 
 
@@ -219,19 +209,12 @@ def list_calls(
     book: Book, contract: str | None = None, window: Window | None = None
 ) -> tuple[Call, ...]:
     """Every call-off, in date order, narrowed by contract and by week."""
-    clauses = []
-    params: list[object] = []
-    if contract is not None:
-        clauses.append("contract = ?")
-        params.append(contract)
+    narrow = narrowing().maybe("contract = ?", contract)
     if window is not None:
-        clauses.append("week_start <= ?")
-        params.append(date_text(window.end))
-        clauses.append("week_end >= ?")
-        params.append(date_text(window.start))
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        narrow.until("week_start", window.end).since("week_end", window.start)
     rows = book.query(
-        f"SELECT {_CALL_COLUMNS} FROM call_off{where} ORDER BY week_start, code", params
+        f"SELECT {_CALL_COLUMNS} FROM call_off{narrow.where} ORDER BY week_start, code",
+        narrow.values,
     )
     return tuple(_call(row) for row in rows)
 

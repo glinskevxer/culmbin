@@ -16,6 +16,7 @@ from culmbin.errors import ConflictError, NotFoundError
 from culmbin.model.enums import Basis, Material
 from culmbin.model.spec import Clause, Specification
 from culmbin.store.book import Book
+from culmbin.store.query import optional
 from culmbin.store.rows import as_enum, as_optional_number, as_optional_text, as_text
 
 
@@ -74,10 +75,7 @@ def get_specification(book: Book, name: str) -> Specification:
 
 def find_specification(book: Book, name: str) -> Specification | None:
     """One specification, or nothing."""
-    try:
-        return get_specification(book, name)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_specification(book, name))
 
 
 def list_specifications(book: Book, material: Material | None = None) -> tuple[Specification, ...]:

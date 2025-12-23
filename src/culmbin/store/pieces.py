@@ -24,6 +24,7 @@ from culmbin.errors import ConflictError, NotFoundError, StateError
 from culmbin.model.enums import MaltStyle, PieceStage
 from culmbin.model.process import Piece
 from culmbin.store.book import Book
+from culmbin.store.query import narrowing, optional
 from culmbin.store.rows import (
     as_count,
     as_date,
@@ -100,10 +101,7 @@ def get_piece(book: Book, code: str) -> Piece:
 
 def find_piece(book: Book, code: str) -> Piece | None:
     """One piece, or nothing."""
-    try:
-        return get_piece(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_piece(book, code))
 
 
 def recipes_of(book: Book, code: str) -> tuple[str | None, str | None, str | None]:
@@ -278,19 +276,9 @@ def list_pieces(
     crop_year: int | None = None,
 ) -> tuple[Piece, ...]:
     """Every piece, in code order, narrowed the three ways the floor asks."""
-    clauses = []
-    params: list[object] = []
-    if stage is not None:
-        clauses.append("stage = ?")
-        params.append(stage)
-    if variety is not None:
-        clauses.append("variety = ?")
-        params.append(variety)
-    if crop_year is not None:
-        clauses.append("crop_year = ?")
-        params.append(crop_year)
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
-    rows = book.query(f"SELECT {_COLUMNS} FROM piece{where} ORDER BY code", params)
+    narrow = narrowing().maybe("stage = ?", stage).maybe("variety = ?", variety)
+    narrow.maybe("crop_year = ?", crop_year)
+    rows = book.query(f"SELECT {_COLUMNS} FROM piece{narrow.where} ORDER BY code", narrow.values)
     return tuple(_piece(row) for row in rows)
 
 

@@ -16,6 +16,7 @@ import sqlite3
 from culmbin.errors import ConflictError, NotFoundError
 from culmbin.intake.standard import Standard
 from culmbin.store.book import Book
+from culmbin.store.query import optional
 from culmbin.store.rows import as_money, as_number, as_text, money_text
 
 _COLUMNS = (
@@ -79,10 +80,7 @@ def get_standard(book: Book, name: str) -> Standard:
 
 def find_standard(book: Book, name: str) -> Standard | None:
     """One standard, or nothing."""
-    try:
-        return get_standard(book, name)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_standard(book, name))
 
 
 def list_standards(book: Book) -> tuple[Standard, ...]:

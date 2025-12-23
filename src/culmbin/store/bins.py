@@ -22,6 +22,7 @@ from culmbin.model.enums import BinState, MaltStyle
 from culmbin.model.lots import Bin, Contents
 from culmbin.store.book import Book
 from culmbin.store.pieces import get_piece
+from culmbin.store.query import optional
 from culmbin.store.rows import (
     as_count,
     as_enum,
@@ -72,10 +73,7 @@ def get_bin(book: Book, code: str) -> Bin:
 
 def find_bin(book: Book, code: str) -> Bin | None:
     """One bin, or nothing."""
-    try:
-        return get_bin(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_bin(book, code))
 
 
 def list_bins(book: Book, state: BinState | None = None) -> tuple[Bin, ...]:

@@ -22,6 +22,7 @@ from culmbin.errors import NotFoundError
 from culmbin.intake.grading import Adjustment, Grading
 from culmbin.model.enums import IntakeOutcome, RejectionReason
 from culmbin.store.book import Book
+from culmbin.store.query import narrowing, optional
 from culmbin.store.rows import (
     as_enum,
     as_money,
@@ -118,10 +119,7 @@ def get_grading(book: Book, ticket: str) -> Grading:
 
 def find_grading(book: Book, ticket: str) -> Grading | None:
     """One grading, or nothing."""
-    try:
-        return get_grading(book, ticket)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_grading(book, ticket))
 
 
 def graded_on(book: Book, ticket: str) -> dt.date:
@@ -165,19 +163,11 @@ def list_gradings(
     until: dt.date | None = None,
 ) -> tuple[Grading, ...]:
     """Every grading, oldest first, narrowed by outcome and by day."""
-    clauses = []
-    params: list[object] = []
-    if outcome is not None:
-        clauses.append("outcome = ?")
-        params.append(outcome)
-    if since is not None:
-        clauses.append("graded_on >= ?")
-        params.append(date_text(since))
-    if until is not None:
-        clauses.append("graded_on <= ?")
-        params.append(date_text(until))
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
-    rows = book.query(f"SELECT {_COLUMNS} FROM grading{where} ORDER BY graded_on, ticket", params)
+    narrow = narrowing().maybe("outcome = ?", outcome)
+    narrow.since("graded_on", since).until("graded_on", until)
+    rows = book.query(
+        f"SELECT {_COLUMNS} FROM grading{narrow.where} ORDER BY graded_on, ticket", narrow.values
+    )
     return tuple(_grading(book, row) for row in rows)
 
 
@@ -188,15 +178,12 @@ def ungraded(book: Book, until: dt.date | None = None) -> tuple[str, ...]:
     nobody has acted on, which is different from one that has not been
     sampled at all.
     """
-    clauses = ["d.sample IS NOT NULL", "g.ticket IS NULL"]
-    params: list[object] = []
-    if until is not None:
-        clauses.append("d.arrived <= ?")
-        params.append(date_text(until))
+    narrow = narrowing().always("d.sample IS NOT NULL").always("g.ticket IS NULL")
+    narrow.until("d.arrived", until)
     rows = book.query(
         "SELECT d.ticket FROM delivery d LEFT JOIN grading g ON g.ticket = d.ticket "
-        f"WHERE {' AND '.join(clauses)} ORDER BY d.arrived, d.ticket",
-        params,
+        f"{narrow.where} ORDER BY d.arrived, d.ticket",
+        narrow.values,
     )
     return tuple(as_text(row, "ticket") for row in rows)
 

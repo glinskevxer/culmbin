@@ -9,6 +9,7 @@ from culmbin.errors import ConflictError, NotFoundError
 from culmbin.model.enums import VesselKind
 from culmbin.model.plant import Plant, Vessel, plant_of
 from culmbin.store.book import Book
+from culmbin.store.query import optional
 from culmbin.store.rows import (
     as_date,
     as_enum,
@@ -85,10 +86,7 @@ def get_vessel(book: Book, code: str) -> Vessel:
 
 def find_vessel(book: Book, code: str) -> Vessel | None:
     """One vessel, or nothing."""
-    try:
-        return get_vessel(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_vessel(book, code))
 
 
 def list_vessels(book: Book, kind: VesselKind | None = None) -> Plant:

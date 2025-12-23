@@ -19,6 +19,7 @@ from culmbin.errors import ConflictError, NotFoundError, StateError
 from culmbin.model.enums import ShipmentState
 from culmbin.model.sales import Shipment
 from culmbin.store.book import Book
+from culmbin.store.query import narrowing, optional
 from culmbin.store.rows import (
     as_date,
     as_enum,
@@ -91,10 +92,7 @@ def get_shipment(book: Book, code: str) -> Shipment:
 
 def find_shipment(book: Book, code: str) -> Shipment | None:
     """One shipment, or nothing."""
-    try:
-        return get_shipment(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_shipment(book, code))
 
 
 def advance(book: Book, code: str, state: ShipmentState) -> Shipment:
@@ -136,25 +134,12 @@ def list_shipments(
     until: dt.date | None = None,
 ) -> tuple[Shipment, ...]:
     """Every shipment, oldest first, narrowed the five ways the desk asks."""
-    clauses = []
-    params: list[object] = []
-    if contract is not None:
-        clauses.append("contract = ?")
-        params.append(contract)
-    if lot is not None:
-        clauses.append("lot = ?")
-        params.append(lot)
-    if state is not None:
-        clauses.append("state = ?")
-        params.append(state)
-    if since is not None:
-        clauses.append("despatched >= ?")
-        params.append(date_text(since))
-    if until is not None:
-        clauses.append("despatched <= ?")
-        params.append(date_text(until))
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
-    rows = book.query(f"SELECT {_COLUMNS} FROM shipment{where} ORDER BY despatched, code", params)
+    narrow = narrowing().maybe("contract = ?", contract).maybe("lot = ?", lot)
+    narrow.maybe("state = ?", state)
+    narrow.since("despatched", since).until("despatched", until)
+    rows = book.query(
+        f"SELECT {_COLUMNS} FROM shipment{narrow.where} ORDER BY despatched, code", narrow.values
+    )
     return tuple(_shipment(row) for row in rows)
 
 

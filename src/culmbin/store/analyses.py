@@ -29,6 +29,7 @@ from culmbin.errors import ConflictError, NotFoundError
 from culmbin.model.enums import Basis, Material
 from culmbin.model.results import Analysis, Result, analysis_of
 from culmbin.store.book import Book
+from culmbin.store.query import narrowing, optional
 from culmbin.store.rows import (
     as_date,
     as_enum,
@@ -194,10 +195,7 @@ def get_analysis(book: Book, reference: str) -> Analysis:
 
 def find_analysis(book: Book, reference: str) -> Analysis | None:
     """One analysis, or nothing."""
-    try:
-        return get_analysis(book, reference)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_analysis(book, reference))
 
 
 def analysis_note(book: Book, reference: str) -> str:
@@ -215,21 +213,11 @@ def list_analyses(
     until: dt.date | None = None,
 ) -> tuple[Analysis, ...]:
     """Every analysis, oldest first, narrowed by material and by day."""
-    clauses = []
-    params: list[object] = []
-    if material is not None:
-        clauses.append("material = ?")
-        params.append(material)
-    if since is not None:
-        clauses.append("taken >= ?")
-        params.append(date_text(since))
-    if until is not None:
-        clauses.append("taken <= ?")
-        params.append(date_text(until))
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+    narrow = narrowing().maybe("material = ?", material).since("taken", since)
+    narrow.until("taken", until)
     rows = book.query(
-        f"SELECT reference FROM analysis{where} ORDER BY taken, reference",
-        params,
+        f"SELECT reference FROM analysis{narrow.where} ORDER BY taken, reference",
+        narrow.values,
     )
     return tuple(get_analysis(book, as_text(row, "reference")) for row in rows)
 

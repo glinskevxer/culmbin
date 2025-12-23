@@ -20,6 +20,7 @@ from culmbin.errors import ConflictError, NotFoundError, StateError
 from culmbin.model.enums import IntakeOutcome
 from culmbin.model.silo import Holding, Silo, holding_of
 from culmbin.store.book import Book
+from culmbin.store.query import optional
 from culmbin.store.rows import (
     as_count,
     as_number,
@@ -66,10 +67,7 @@ def get_silo(book: Book, code: str) -> Silo:
 
 def find_silo(book: Book, code: str) -> Silo | None:
     """One silo, or nothing."""
-    try:
-        return get_silo(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_silo(book, code))
 
 
 def list_silos(book: Book) -> tuple[Silo, ...]:

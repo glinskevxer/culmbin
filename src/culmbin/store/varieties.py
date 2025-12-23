@@ -9,6 +9,7 @@ from culmbin.errors import ConflictError, NotFoundError
 from culmbin.model.enums import Approval, Habit
 from culmbin.model.variety import Variety, VarietyList, variety_list_of
 from culmbin.store.book import Book
+from culmbin.store.query import optional
 from culmbin.store.rows import (
     as_date,
     as_enum,
@@ -78,10 +79,7 @@ def get_variety(book: Book, code: str) -> Variety:
 
 def find_variety(book: Book, code: str) -> Variety | None:
     """One variety, or nothing."""
-    try:
-        return get_variety(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_variety(book, code))
 
 
 def list_varieties(book: Book, habit: Habit | None = None) -> VarietyList:

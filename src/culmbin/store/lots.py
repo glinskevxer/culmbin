@@ -21,6 +21,7 @@ from culmbin.model.enums import BinState, MaltStyle
 from culmbin.model.lots import MaltLot
 from culmbin.store.bins import contents_of, get_bin
 from culmbin.store.book import Book
+from culmbin.store.query import narrowing, optional
 from culmbin.store.rows import (
     as_count,
     as_date,
@@ -114,10 +115,7 @@ def get_lot(book: Book, code: str) -> MaltLot:
 
 def find_lot(book: Book, code: str) -> MaltLot | None:
     """One lot, or nothing."""
-    try:
-        return get_lot(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_lot(book, code))
 
 
 def certify(book: Book, code: str, analysis: str) -> MaltLot:
@@ -146,20 +144,15 @@ def list_lots(
     mixed lot that happens to contain it is not on the list. That is the
     segregation rule, applied where it is asked rather than afterwards.
     """
-    clauses = []
-    params: list[object] = []
-    if style is not None:
-        clauses.append("style = ?")
-        params.append(style)
+    narrow = narrowing().maybe("style = ?", style)
     if certified is True:
-        clauses.append("analysis IS NOT NULL")
+        narrow.always("analysis IS NOT NULL")
     if certified is False:
-        clauses.append("analysis IS NULL")
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        narrow.always("analysis IS NULL")
     rows = book.query(
         "SELECT code, malt_bin, sealed, tonnes, moisture, analysis, style "
-        f"FROM malt_lot{where} ORDER BY sealed, code",
-        params,
+        f"FROM malt_lot{narrow.where} ORDER BY sealed, code",
+        narrow.values,
     )
     lots = tuple(_lot(book, row) for row in rows)
     if variety is None:

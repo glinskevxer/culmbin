@@ -9,6 +9,7 @@ from culmbin.errors import ConflictError, NotFoundError
 from culmbin.model.enums import Role
 from culmbin.model.party import Party, Register, register_of
 from culmbin.store.book import Book
+from culmbin.store.query import optional
 from culmbin.store.rows import (
     as_date,
     as_enum,
@@ -82,10 +83,7 @@ def get_party(book: Book, code: str) -> Party:
 
 def find_party(book: Book, code: str) -> Party | None:
     """One party, or nothing, for callers that treat absence as an answer."""
-    try:
-        return get_party(book, code)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_party(book, code))
 
 
 def list_parties(book: Book, role: Role | None = None) -> Register:

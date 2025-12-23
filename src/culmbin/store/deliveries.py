@@ -13,6 +13,7 @@ import sqlite3
 from culmbin.errors import ConflictError, NotFoundError
 from culmbin.model.intake import Delivery
 from culmbin.store.book import Book
+from culmbin.store.query import narrowing, optional
 from culmbin.store.rows import (
     as_date,
     as_number,
@@ -74,10 +75,7 @@ def get_delivery(book: Book, ticket: str) -> Delivery:
 
 def find_delivery(book: Book, ticket: str) -> Delivery | None:
     """One delivery, or nothing."""
-    try:
-        return get_delivery(book, ticket)
-    except NotFoundError:
-        return None
+    return optional(lambda: get_delivery(book, ticket))
 
 
 def attach_sample(book: Book, ticket: str, reference: str) -> Delivery:
@@ -128,22 +126,11 @@ def list_deliveries(
     until: dt.date | None = None,
 ) -> tuple[Delivery, ...]:
     """Every delivery, oldest first, narrowed the four ways the office asks."""
-    clauses = []
-    params: list[object] = []
-    if purchase is not None:
-        clauses.append("purchase = ?")
-        params.append(purchase)
-    if party is not None:
-        clauses.append("party = ?")
-        params.append(party)
-    if since is not None:
-        clauses.append("arrived >= ?")
-        params.append(date_text(since))
-    if until is not None:
-        clauses.append("arrived <= ?")
-        params.append(date_text(until))
-    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
-    rows = book.query(f"SELECT {_COLUMNS} FROM delivery{where} ORDER BY arrived, ticket", params)
+    narrow = narrowing().maybe("purchase = ?", purchase).maybe("party = ?", party)
+    narrow.since("arrived", since).until("arrived", until)
+    rows = book.query(
+        f"SELECT {_COLUMNS} FROM delivery{narrow.where} ORDER BY arrived, ticket", narrow.values
+    )
     return tuple(_delivery(row) for row in rows)
 
 
@@ -154,13 +141,8 @@ def unsampled(book: Book, until: dt.date | None = None) -> tuple[Delivery, ...]:
     is in the pit and has not been graded is barley we have taken in and
     cannot pay for.
     """
-    clauses = ["sample IS NULL"]
-    params: list[object] = []
-    if until is not None:
-        clauses.append("arrived <= ?")
-        params.append(date_text(until))
+    narrow = narrowing().always("sample IS NULL").until("arrived", until)
     rows = book.query(
-        f"SELECT {_COLUMNS} FROM delivery WHERE {' AND '.join(clauses)} ORDER BY arrived, ticket",
-        params,
+        f"SELECT {_COLUMNS} FROM delivery{narrow.where} ORDER BY arrived, ticket", narrow.values
     )
     return tuple(_delivery(row) for row in rows)
