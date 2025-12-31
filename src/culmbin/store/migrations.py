@@ -547,6 +547,29 @@ CREATE UNIQUE INDEX analysis_supersedes_once ON analysis (supersedes)
     WHERE supersedes IS NOT NULL;
 """
 
+_COMPLAINTS = """
+CREATE TABLE complaint (
+    code      TEXT PRIMARY KEY,
+    customer  TEXT NOT NULL REFERENCES party (code),
+    shipment  TEXT REFERENCES shipment (code),
+    kind      TEXT NOT NULL,
+    state     TEXT NOT NULL,
+    raised    TEXT NOT NULL,
+    closed    TEXT,
+    summary   TEXT NOT NULL,
+    finding   TEXT NOT NULL DEFAULT '',
+    CHECK (kind IN (
+        'colour', 'extract', 'modification', 'contamination', 'late', 'paperwork'
+    )),
+    CHECK (state IN ('open', 'investigating', 'upheld', 'rejected', 'withdrawn')),
+    CHECK (closed IS NULL OR closed >= raised),
+    CHECK ((state IN ('upheld', 'rejected', 'withdrawn')) = (closed IS NOT NULL))
+);
+
+CREATE INDEX complaint_by_customer ON complaint (customer, raised);
+CREATE INDEX complaint_by_state ON complaint (state, code);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -563,6 +586,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(13, "which lorry loads a piece was charged from", _SOURCES),
     Migration(14, "barley silos and what was tipped into them", _SILOS),
     Migration(15, "which analysis a retest replaces", _RETESTS),
+    Migration(16, "customer complaints and what came of them", _COMPLAINTS),
 )
 """Every migration this package knows about, in the order they are applied.
 

@@ -208,6 +208,41 @@ class ShipmentState(StrEnum):
 
 
 @unique
+class ComplaintState(StrEnum):
+    """Where a customer complaint has got to.
+
+    `UPHELD` and `REJECTED` are both closed and they are not the same thing.
+    A rejected complaint is one we looked into and did not accept, which the
+    customer is entitled to be told; a withdrawn one is the customer saying
+    never mind, and the difference matters when somebody counts them.
+    """
+
+    OPEN = "open"
+    INVESTIGATING = "investigating"
+    UPHELD = "upheld"
+    REJECTED = "rejected"
+    WITHDRAWN = "withdrawn"
+
+
+@unique
+class ComplaintKind(StrEnum):
+    """What a customer says is wrong.
+
+    Four of these are about the malt and two are about us. Keeping them in
+    one list is deliberate: a complaint about a late delivery and one about
+    the colour both start with the same telephone call and both have to be
+    counted.
+    """
+
+    COLOUR = "colour"
+    EXTRACT = "extract"
+    MODIFICATION = "modification"
+    CONTAMINATION = "contamination"
+    LATE = "late"
+    PAPERWORK = "paperwork"
+
+
+@unique
 class Conformance(StrEnum):
     """Whether a result meets a clause.
 

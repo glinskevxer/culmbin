@@ -14,6 +14,8 @@ from culmbin.model.enums import (
     Approval,
     Basis,
     BinState,
+    ComplaintKind,
+    ComplaintState,
     Conformance,
     ContractState,
     Habit,
@@ -33,6 +35,8 @@ from culmbin.model.enums import (
 ENUMS = [
     Approval,
     Basis,
+    ComplaintKind,
+    ComplaintState,
     BinState,
     Conformance,
     ContractState,
@@ -129,6 +133,17 @@ def test_the_kiln_phases_are_in_the_order_the_kiln_runs_them() -> None:
 
 def test_a_steep_has_two_kinds_of_leg() -> None:
     assert set(LegKind) == {LegKind.WET_STAND, LegKind.AIR_REST}
+
+
+def test_a_rejected_complaint_is_not_a_withdrawn_one() -> None:
+    """One is us not accepting it and the other is the customer saying never mind."""
+    closed = {ComplaintState.UPHELD, ComplaintState.REJECTED, ComplaintState.WITHDRAWN}
+    assert len(closed) == 3
+    assert ComplaintState.OPEN not in closed
+
+
+def test_a_complaint_can_be_about_us_rather_than_the_malt() -> None:
+    assert {ComplaintKind.LATE, ComplaintKind.PAPERWORK} <= set(ComplaintKind)
 
 
 def test_untested_is_neither_a_pass_nor_a_fail() -> None:

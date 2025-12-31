@@ -34,6 +34,31 @@ What a malt bin is doing.
 | `sealed` | sealed |
 | `drawing` | drawing |
 
+## ComplaintKind
+
+What a customer says is wrong.
+
+| stored as | name |
+| --- | --- |
+| `colour` | colour |
+| `extract` | extract |
+| `modification` | modification |
+| `contamination` | contamination |
+| `late` | late |
+| `paperwork` | paperwork |
+
+## ComplaintState
+
+Where a customer complaint has got to.
+
+| stored as | name |
+| --- | --- |
+| `open` | open |
+| `investigating` | investigating |
+| `upheld` | upheld |
+| `rejected` | rejected |
+| `withdrawn` | withdrawn |
+
 ## Conformance
 
 Whether a result meets a clause.
