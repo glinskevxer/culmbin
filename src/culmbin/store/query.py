@@ -17,7 +17,7 @@ is a `get_x` with the not-found turned into `None`.
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import TypeVar
 
@@ -50,6 +50,18 @@ class Narrowing:
         if value is None:
             return self
         return self.always(clause, value)
+
+    def one_of(self, column: str, values: Sequence[object]) -> Narrowing:
+        """Narrow to a set of values, as parameters rather than as text.
+
+        An `IN` list is the one clause that tempts everybody into building
+        SQL out of values. It takes one question mark per value and the
+        values go through as parameters like everything else.
+        """
+        if not values:
+            return self.always("1 = 0")
+        marks = ", ".join("?" for _ in values)
+        return self.always(f"{column} IN ({marks})", *values)
 
     def since(self, column: str, day: dt.date | None) -> Narrowing:
         """Narrow to days on or after one, if there is one."""

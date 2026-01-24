@@ -60,6 +60,19 @@ def test_both_ends_of_a_window_can_be_given() -> None:
     assert narrow.values == ["2025-09-01", "2025-09-30"]
 
 
+def test_a_set_of_values_goes_through_as_parameters() -> None:
+    """An `IN` list is the one clause that tempts everybody into building SQL."""
+    narrow = narrowing().one_of("state", ["open", "investigating"])
+    assert narrow.where == " WHERE state IN (?, ?)"
+    assert narrow.values == ["open", "investigating"]
+
+
+def test_a_set_of_nothing_matches_nothing() -> None:
+    narrow = narrowing().one_of("state", [])
+    assert narrow.where == " WHERE 1 = 0"
+    assert narrow.values == []
+
+
 def test_a_clause_with_no_value_is_still_a_clause() -> None:
     narrow = narrowing().always("sample IS NULL")
     assert narrow.where == " WHERE sample IS NULL"
