@@ -28,6 +28,7 @@ from culmbin.cli.intake import delivery, purchase, standard
 from culmbin.cli.lab import blend, lot, malt_bin, spec
 from culmbin.cli.pages import report, trace
 from culmbin.cli.process import piece, recipe
+from culmbin.cli.quality import complaint
 from culmbin.cli.registers import party, variety, vessel
 from culmbin.cli.sales import call, contract, ship
 from culmbin.cli.tools import export, find, registers
@@ -113,6 +114,7 @@ def backup(context: Context, target: Path) -> None:
 cli.add_command(delivery)
 cli.add_command(blend)
 cli.add_command(call)
+cli.add_command(complaint)
 cli.add_command(contract)
 cli.add_command(export)
 cli.add_command(find)

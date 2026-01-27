@@ -84,6 +84,48 @@ List the call-offs.
 | --- | --- | --- |
 | `--contract` |  | only against this contract. |
 
+## `culmbin complaint`
+
+Customer complaints and what came of them.
+
+## `culmbin complaint attach CODE SHIPMENT`
+
+Put a shipment on a complaint and say what went into it.
+
+## `culmbin complaint close CODE STATE`
+
+Close a complaint, with what was found written down.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--finding` | yes | what was found. |
+
+## `culmbin complaint investigate CODE`
+
+Move a complaint from open to being looked into.
+
+## `culmbin complaint list`
+
+Print the quality page.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--from` |  | the first day. Defaults to the first of the month. |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+
+## `culmbin complaint raise CODE CUSTOMER SUMMARY`
+
+Write down a telephone call.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--about` | yes | what the customer says is wrong. |
+| `--shipment` |  | the load it is about, if anybody knows. |
+
+## `culmbin complaint show CODE`
+
+Say everything about one complaint.
+
 ## `culmbin contract`
 
 Agreements to sell malt.
@@ -444,6 +486,15 @@ Every bin, what is in it, and whether it is mixed.
 ## `culmbin report calls`
 
 What customers have asked for against each contract.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
+
+## `culmbin report complaints`
+
+Every complaint, with the ones nobody can walk back at the top.
 
 | option | required | what it is for |
 | --- | --- | --- |
