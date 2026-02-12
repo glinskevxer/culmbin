@@ -227,6 +227,41 @@ Write the whole book out as CSV, one file per table.
 
 Say what a code is, whatever kind of thing it turns out to be.
 
+## `culmbin gas`
+
+What the meter read across a kiln run.
+
+## `culmbin gas list`
+
+Print the gas page.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--from` |  | the first day. Defaults to the first of the month. |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+
+## `culmbin gas record PIECE`
+
+Write down what the meter read across one piece's time on a kiln.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--kiln` | yes | the kiln it ran on. |
+| `--m3` | yes | cubic metres off the meter. |
+| `--note` |  | anything worth writing down. |
+
+## `culmbin gas show PIECE`
+
+Say everything about one kiln run.
+
+## `culmbin gas suspect`
+
+Every run whose efficiency is outside what a kiln can do.
+
+## `culmbin gas waiting`
+
+Every stripped piece with no meter reading against it.
+
 ## `culmbin init`
 
 Make a book, or bring an existing one up to date.
@@ -516,6 +551,15 @@ The germination floor, worst first.
 | option | required | what it is for |
 | --- | --- | --- |
 | `--at` |  | the box temperature the clock is run at. |
+
+## `culmbin report gas`
+
+Every kiln run, with the ones outside the band at the top.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
 
 ## `culmbin report grower PARTY`
 

@@ -24,6 +24,7 @@ import click
 
 from culmbin import __version__
 from culmbin.cli.context import DEFAULT_BOOK, Context, pass_context
+from culmbin.cli.energy import gas
 from culmbin.cli.intake import delivery, purchase, standard
 from culmbin.cli.lab import blend, lot, malt_bin, spec
 from culmbin.cli.pages import report, trace
@@ -118,6 +119,7 @@ cli.add_command(complaint)
 cli.add_command(contract)
 cli.add_command(export)
 cli.add_command(find)
+cli.add_command(gas)
 cli.add_command(lot)
 cli.add_command(malt_bin)
 cli.add_command(party)
