@@ -37,6 +37,11 @@ def test_the_support_modules_are_not_tests() -> None:
     assert "tests.support" in check_tests.SUPPORT
 
 
+def test_a_cross_cutting_module_is_not_paired_with_a_source() -> None:
+    """The calendar sweep is about a dozen modules and pairs with none of them."""
+    assert "test_calendar.py" in check_tests.CROSS_CUTTING
+
+
 def test_a_dotted_name_drops_the_init(tmp_path: Path) -> None:
     (tmp_path / "thing").mkdir()
     (tmp_path / "thing" / "__init__.py").touch()

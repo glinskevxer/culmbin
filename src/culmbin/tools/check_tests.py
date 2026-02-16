@@ -36,6 +36,15 @@ NO_TEST_NEEDED = frozenset(
 SUPPORT = frozenset({"tests.support", "tests.conftest"})
 """Test helpers, which are not tests and do not test anything."""
 
+CROSS_CUTTING = frozenset({"test_calendar.py"})
+"""Test modules that are about the package rather than about one module.
+
+`test_calendar.py` sweeps the clock across three years and asks every rule
+that takes a day. There is no `calendar.py` for it to be paired with and
+there should not be: the point of it is that the rules are spread over a
+dozen modules and none of them may move with the date.
+"""
+
 
 def _expected_test(path: Path) -> Path:
     """Where the test module for a source module should be."""
@@ -68,6 +77,8 @@ def orphaned_tests() -> list[str]:
     """Every test module whose source module has gone."""
     found = []
     for path in sorted(tests_root().rglob("test_*.py")):
+        if path.name in CROSS_CUTTING:
+            continue
         source = package_root() / path.relative_to(tests_root()).parent / path.name[len("test_") :]
         if not source.exists():
             found.append(f"{relative(path)}: nothing at {relative(source)} is left to test.")
