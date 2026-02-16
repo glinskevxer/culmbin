@@ -1,0 +1,21 @@
+# every migration that has shipped, and what it was
+#
+# Written by `python -m culmbin.tools.check_migrations --write`.
+# A line here never changes. A new line is appended when a migration is.
+  1  5a0d532c9ebe5291  the version table itself
+  2  5ca71e1dae4cb664  parties, varieties and vessels
+  3  f22c1744a3051fbd  analyses and their results
+  4  131d0a1f047672eb  the intake quality standards
+  5  6e1fde320bd3b1f1  purchases and deliveries
+  6  49f727ccf7c1a8db  gradings, their rejections and their adjustments
+  7  cf41b260de3e57cb  when the barley on a delivery was cut
+  8  c51c17b43b80dd5b  steep programmes, germination schedules and kiln curves
+  9  f6315aeac8f8e91a  pieces, their movements, their readings and their weights
+ 10  2961d71714fa25f9  malt bins, what went in and out, and the lots
+ 11  f1070de450cf453a  specifications and their clauses
+ 12  50aa7e1955a71033  contracts, call-offs and shipments
+ 13  681b9bb281999f36  which lorry loads a piece was charged from
+ 14  552ca1d8878628aa  barley silos and what was tipped into them
+ 15  2858f5cde2eb86be  which analysis a retest replaces
+ 16  338fe454ca90f0ba  customer complaints and what came of them
+ 17  de5c5278d4d4e5f1  what the gas meter read across a kiln run
