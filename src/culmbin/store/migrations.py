@@ -583,6 +583,27 @@ CREATE TABLE kiln_run (
 CREATE INDEX kiln_run_by_kiln ON kiln_run (kiln, on_day);
 """
 
+_CLEANING = """
+CREATE TABLE cleaning (
+    vessel   TEXT NOT NULL REFERENCES vessel (code) ON DELETE CASCADE,
+    seq      INTEGER NOT NULL,
+    on_day   TEXT NOT NULL,
+    by_whom  TEXT NOT NULL REFERENCES party (code),
+    note     TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (vessel, seq)
+);
+
+CREATE INDEX cleaning_by_day ON cleaning (vessel, on_day);
+
+CREATE TABLE cleaning_interval (
+    vessel  TEXT PRIMARY KEY REFERENCES vessel (code) ON DELETE CASCADE,
+    days    INTEGER NOT NULL,
+    pieces  INTEGER NOT NULL,
+    CHECK (days > 0),
+    CHECK (pieces > 0)
+);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -601,6 +622,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(15, "which analysis a retest replaces", _RETESTS),
     Migration(16, "customer complaints and what came of them", _COMPLAINTS),
     Migration(17, "what the gas meter read across a kiln run", _KILN_RUNS),
+    Migration(18, "when a vessel was last cleaned and how often it should be", _CLEANING),
 )
 """Every migration this package knows about, in the order they are applied.
 
