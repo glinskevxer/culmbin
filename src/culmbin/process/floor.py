@@ -17,6 +17,9 @@ The checks worth listing:
 - A piece is cast when it has a steep-out weight and a steep-out moisture,
   because everything downstream is worked off the dry matter and there is no
   dry matter without both.
+- A vessel that is overdue a clean takes a piece only when somebody says
+  why, and the reason goes in the book next to the movement. Refusing
+  outright would get a cleaning record backdated by the end of the week.
 """
 
 from __future__ import annotations
@@ -39,6 +42,7 @@ from culmbin.process.germination import (
 )
 from culmbin.process.losses import Balance
 from culmbin.store.book import Book
+from culmbin.store.cleaning import policed, standing
 from culmbin.store.pieces import (
     add_piece,
     get_piece,
@@ -79,6 +83,22 @@ class FloorLine:
         return self.hours_to_cast <= 0.0
 
 
+def check_clean(book: Book, code: str, on: dt.date, despite: str) -> str:
+    """Refuse an overdue vessel unless somebody says why, and give the reason back.
+
+    Only policed vessels are refused. A vessel nobody has set an interval on
+    is not policed, which is how a plant takes this up a vessel at a time.
+    """
+    if not policed(book, code):
+        return ""
+    where = standing(book, code)
+    if not where.overdue(on):
+        return ""
+    if not despite.strip():
+        raise ConflictError(f"{where.why(on)}, so say why it is going in anyway")
+    return f"{where.why(on)}: {despite.strip()}"
+
+
 def _check_vessel(book: Book, code: str, kind: VesselKind, on: dt.date, share: bool) -> None:
     """Refuse a vessel that is the wrong kind, out of service, or occupied."""
     vessel = get_vessel(book, code)
@@ -110,12 +130,14 @@ def charge(
     schedule: str,
     curve: str,
     share: bool = False,
+    despite: str = "",
 ) -> Piece:
     """Put a charge of barley into a steep, with everything checked first."""
     if piece.stage is not PieceStage.STEEPING:
         raise StateError(f"{piece.code} is being charged and says it is {piece.stage}")
     assert piece.vessel is not None
     _check_vessel(book, piece.vessel, VesselKind.STEEP, piece.started, share)
+    check_clean(book, piece.vessel, piece.started, despite)
     vessel = get_vessel(book, piece.vessel)
     if not vessel.holds(piece.charge_tonnes):
         raise ConflictError(
@@ -138,6 +160,7 @@ def cast(
     steep_out_moisture: float,
     depth_cm: float,
     share: bool = False,
+    despite: str = "",
 ) -> Piece:
     """Cast a piece out of the steep and into a box or onto a floor."""
     piece = get_piece(book, code)
@@ -150,6 +173,7 @@ def cast(
         raise ConflictError(f"{into} was not in service on {on}")
     if not share and in_vessel(book, into) is not None:
         raise ConflictError(f"{into} already has something in it")
+    note = check_clean(book, into, on, despite)
     holds = vessel.tonnes_at_depth(depth_cm)
     if steep_out_tonnes > holds + 1e-9:
         raise ConflictError(
@@ -157,16 +181,19 @@ def cast(
         )
     with book.writing():
         record_weighing(book, code, "steep_out", steep_out_tonnes, steep_out_moisture)
-        return move_piece(book, code, PieceStage.GERMINATING, on, into)
+        return move_piece(book, code, PieceStage.GERMINATING, on, into, note=note)
 
 
-def load_kiln(book: Book, code: str, kiln: str, on: dt.date, share: bool = False) -> Piece:
+def load_kiln(
+    book: Book, code: str, kiln: str, on: dt.date, share: bool = False, despite: str = ""
+) -> Piece:
     """Move a piece off the floor and onto a kiln."""
     piece = get_piece(book, code)
     if piece.stage is not PieceStage.GERMINATING:
         raise StateError(f"{code} is {piece.stage} and cannot go on a kiln")
     _check_vessel(book, kiln, VesselKind.KILN, on, share)
-    return move_piece(book, code, PieceStage.KILNING, on, kiln)
+    note = check_clean(book, kiln, on, despite)
+    return move_piece(book, code, PieceStage.KILNING, on, kiln, note=note)
 
 
 def strip_kiln(

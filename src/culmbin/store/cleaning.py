@@ -13,6 +13,11 @@ Being overdue does not stop a piece going in, and it is not silent either.
 The floor can charge an overdue vessel and has to say why, and the reason
 goes in the book next to the charge. That is deliberate: the alternative is
 somebody backdating a cleaning record to get on with the day.
+
+**A vessel is policed once somebody has set an interval on it.** Until then
+the default is what the page shows and not what the floor enforces, which is
+how a plant adopts this a vessel at a time instead of the morning it is
+switched on.
 """
 
 from __future__ import annotations
@@ -97,6 +102,17 @@ def set_interval(book: Book, vessel: str, days: int, pieces: int) -> Interval:
         (vessel, days, pieces),
     )
     return interval
+
+
+def policed(book: Book, vessel: str) -> bool:
+    """Whether somebody has set an interval on this vessel.
+
+    Until they have, the default interval is what the page shows and not
+    what the floor refuses on.
+    """
+    return (
+        book.first("SELECT vessel FROM cleaning_interval WHERE vessel = ?", (vessel,)) is not None
+    )
 
 
 def interval_for(book: Book, vessel: str) -> Interval:

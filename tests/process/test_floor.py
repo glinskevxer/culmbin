@@ -11,12 +11,14 @@ import datetime as dt
 import pytest
 
 from culmbin.errors import ConflictError, NotFoundError, StateError, ValidationError
-from culmbin.model.enums import PieceStage
+from culmbin.model.enums import PieceStage, Role
+from culmbin.model.party import Party
 from culmbin.model.process import Piece
 from culmbin.process.floor import (
     balance_of,
     cast,
     charge,
+    check_clean,
     floor_line,
     floor_sheet,
     load_kiln,
@@ -25,7 +27,9 @@ from culmbin.process.floor import (
     strip_kiln,
 )
 from culmbin.store.book import Book
-from culmbin.store.pieces import add_reading, get_piece, recipes_of
+from culmbin.store.cleaning import record_cleaning, set_interval
+from culmbin.store.parties import add_party
+from culmbin.store.pieces import add_reading, get_piece, movements, recipes_of
 from culmbin.store.vessels import retire_vessel
 from culmbin.units.clock import Leg
 from tests.support.records import a_piece
@@ -259,3 +263,67 @@ def test_a_piece_with_no_schedule_cannot_have_one_read(plant: Book) -> None:
     plant.execute("UPDATE piece SET schedule = NULL WHERE code = '2025-120'")
     with pytest.raises(NotFoundError, match="not on a germination schedule"):
         schedule_of(plant, "2025-120")
+
+
+def test_an_unpoliced_vessel_takes_a_piece_without_a_word(plant: Book) -> None:
+    """A plant takes this up a vessel at a time, not the morning it is switched on."""
+    assert check_clean(plant, "S1", STARTED, "") == ""
+    charged(plant)
+
+
+def test_a_policed_vessel_that_is_overdue_has_to_be_argued_for(plant: Book) -> None:
+    set_interval(plant, "S1", 7, 4)
+    with pytest.raises(ConflictError, match="say why it is going in anyway"):
+        charged(plant)
+
+
+def test_saying_why_lets_the_piece_in_and_writes_the_reason_down(plant: Book) -> None:
+    set_interval(plant, "S1", 7, 4)
+    charge(
+        plant,
+        a_piece("2025-118"),
+        PROGRAMME,
+        SCHEDULE,
+        CURVE,
+        despite="wash rig down, hand rinsed",
+    )
+    assert get_piece(plant, "2025-118").code == "2025-118"
+
+
+def test_a_recently_cleaned_vessel_needs_no_argument(plant: Book) -> None:
+    add_party(plant, Party("DKEHOE", "D Kehoe", Role.HAULIER, dt.date(2011, 6, 1)))
+    set_interval(plant, "S1", 30, 12)
+    record_cleaning(plant, "S1", dt.date(2025, 11, 1), "DKEHOE")
+    charged(plant)
+    assert get_piece(plant, "2025-118").vessel == "S1"
+
+
+def test_an_overdue_box_is_argued_for_at_the_cast(plant: Book) -> None:
+    charged(plant)
+    set_interval(plant, "G1", 7, 4)
+    with pytest.raises(ConflictError, match="never been cleaned"):
+        cast(plant, "2025-118", "G1", CAST, 71.8, 44.8, depth_cm=85.0)
+
+
+def test_the_reason_goes_in_the_book_next_to_the_movement(plant: Book) -> None:
+    charged(plant)
+    set_interval(plant, "G1", 7, 4)
+    cast(
+        plant,
+        "2025-118",
+        "G1",
+        CAST,
+        71.8,
+        44.8,
+        depth_cm=85.0,
+        despite="wash rig down, hand rinsed",
+    )
+    notes = [note for _, _, _, note in movements(plant, "2025-118")]
+    assert any("hand rinsed" in note for note in notes)
+
+
+def test_an_overdue_kiln_is_argued_for_at_the_load(plant: Book) -> None:
+    in_a_box(plant)
+    set_interval(plant, "K1", 7, 4)
+    with pytest.raises(ConflictError, match="never been cleaned"):
+        load_kiln(plant, "2025-118", "K1", dt.date(2025, 11, 8))
