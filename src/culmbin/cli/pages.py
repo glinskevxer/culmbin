@@ -19,6 +19,7 @@ from typing import Any, TypeVar
 import click
 
 from culmbin.cli.context import Context, pass_context
+from culmbin.report.cleaning import cleaning_page
 from culmbin.report.energy import energy_page
 from culmbin.report.floor import in_process_page, plant_page, shift_sheet
 from culmbin.report.intake import day_sheet, grower_page, rejection_page
@@ -115,6 +116,13 @@ def report_complaints(
 ) -> None:
     """Every complaint, with the ones nobody can walk back at the top."""
     click.echo(quality_page(context.book(), _window(context, opens, closes), context.on), nl=False)
+
+
+@report.command("cleaning")
+@pass_context
+def report_cleaning(context: Context) -> None:
+    """Every vessel, when it was cleaned, and which ones nobody is policing."""
+    click.echo(cleaning_page(context.book(), context.on), nl=False)
 
 
 @report.command("gas")

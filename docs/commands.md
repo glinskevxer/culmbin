@@ -84,6 +84,36 @@ List the call-offs.
 | --- | --- | --- |
 | `--contract` |  | only against this contract. |
 
+## `culmbin clean`
+
+When a vessel was last cleaned and how often it should be.
+
+## `culmbin clean due`
+
+Print the cleaning page.
+
+## `culmbin clean interval VESSEL`
+
+Say how often a vessel has to be cleaned, and start policing it.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--days` | yes | clean at least this often. |
+| `--pieces` | yes | and at least this often. |
+
+## `culmbin clean record VESSEL`
+
+Write down that a vessel was cleaned.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--by` | yes | who did it. |
+| `--note` |  | what was done. |
+
+## `culmbin clean show VESSEL`
+
+Where a vessel stands, and every cleaning it has had.
+
 ## `culmbin complaint`
 
 Customer complaints and what came of them.
@@ -526,6 +556,10 @@ What customers have asked for against each contract.
 | --- | --- | --- |
 | `--to` |  | the last day. Defaults to the day being worked as. |
 | `--from` |  | the first day. Defaults to the first of the month. |
+
+## `culmbin report cleaning`
+
+Every vessel, when it was cleaned, and which ones nobody is policing.
 
 ## `culmbin report complaints`
 

@@ -23,6 +23,7 @@ from pathlib import Path
 import click
 
 from culmbin import __version__
+from culmbin.cli.cleaning import clean
 from culmbin.cli.context import DEFAULT_BOOK, Context, pass_context
 from culmbin.cli.energy import gas
 from culmbin.cli.intake import delivery, purchase, standard
@@ -115,6 +116,7 @@ def backup(context: Context, target: Path) -> None:
 cli.add_command(delivery)
 cli.add_command(blend)
 cli.add_command(call)
+cli.add_command(clean)
 cli.add_command(complaint)
 cli.add_command(contract)
 cli.add_command(export)
