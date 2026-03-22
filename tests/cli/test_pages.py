@@ -73,3 +73,14 @@ def test_both_walks_are_in_the_help(invoke: Invoke) -> None:
     result = invoke("trace", "--help")
     assert "forward" in result.output
     assert "back" in result.output
+
+
+def test_the_month_page_prints_on_an_empty_book(invoke: Invoke) -> None:
+    result = invoke("report", "month", on="2025-11-30")
+    assert result.exit_code == 0
+    assert "month end 2025-11-01..2025-11-30" in result.output
+
+
+def test_the_month_page_takes_a_window(invoke: Invoke) -> None:
+    result = invoke("report", "month", "--from", "2025-09-01", "--to", "2025-09-30")
+    assert "2025-09-01..2025-09-30" in result.output

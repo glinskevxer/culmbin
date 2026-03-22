@@ -617,6 +617,15 @@ What came in, what is waiting, and what it settled at.
 
 Every sealed lot with no certificate against it.
 
+## `culmbin report month`
+
+One walk from the weighbridge to the loading bay, as a balance.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
+
 ## `culmbin report plant`
 
 What is in every vessel, and what is free.

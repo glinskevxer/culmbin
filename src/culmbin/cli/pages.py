@@ -23,6 +23,7 @@ from culmbin.report.cleaning import cleaning_page
 from culmbin.report.energy import energy_page
 from culmbin.report.floor import in_process_page, plant_page, shift_sheet
 from culmbin.report.intake import day_sheet, grower_page, rejection_page
+from culmbin.report.month import month_page
 from culmbin.report.process import balance_page
 from culmbin.report.quality import quality_page
 from culmbin.report.sales import call_page, contract_page
@@ -138,6 +139,14 @@ def report_gas(context: Context, opens: dt.datetime | None, closes: dt.datetime 
 def report_yard(context: Context) -> None:
     """What is in the silos and what is still in the intake pit."""
     click.echo(yard_page(context.book()), nl=False)
+
+
+@report.command("month")
+@_window_options
+@pass_context
+def report_month(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
+    """One walk from the weighbridge to the loading bay, as a balance."""
+    click.echo(month_page(context.book(), _window(context, opens, closes)), nl=False)
 
 
 @report.command("plant")
