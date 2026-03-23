@@ -604,6 +604,35 @@ CREATE TABLE cleaning_interval (
 );
 """
 
+_JOURNAL = """
+CREATE TABLE entry (
+    seq     INTEGER PRIMARY KEY AUTOINCREMENT,
+    on_day  TEXT NOT NULL,
+    actor   TEXT NOT NULL,
+    action  TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    detail  TEXT NOT NULL DEFAULT '',
+    CHECK (actor != ''),
+    CHECK (action != ''),
+    CHECK (subject != '')
+);
+
+CREATE INDEX entry_by_day ON entry (on_day, seq);
+CREATE INDEX entry_by_subject ON entry (subject, seq);
+
+CREATE TRIGGER entry_is_append_only_update
+BEFORE UPDATE ON entry
+BEGIN
+    SELECT RAISE(ABORT, 'the journal is append only');
+END;
+
+CREATE TRIGGER entry_is_append_only_delete
+BEFORE DELETE ON entry
+BEGIN
+    SELECT RAISE(ABORT, 'the journal is append only');
+END;
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -623,6 +652,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(16, "customer complaints and what came of them", _COMPLAINTS),
     Migration(17, "what the gas meter read across a kiln run", _KILN_RUNS),
     Migration(18, "when a vessel was last cleaned and how often it should be", _CLEANING),
+    Migration(19, "an append only journal of what was done and by whom", _JOURNAL),
 )
 """Every migration this package knows about, in the order they are applied.
 

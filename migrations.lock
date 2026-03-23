@@ -20,3 +20,4 @@
  16  338fe454ca90f0ba  customer complaints and what came of them
  17  de5c5278d4d4e5f1  what the gas meter read across a kiln run
  18  1bd756649ca8da7e  when a vessel was last cleaned and how often it should be
+ 19  6e8123f568e872c6  an append only journal of what was done and by whom
