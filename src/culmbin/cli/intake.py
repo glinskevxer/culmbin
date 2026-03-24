@@ -347,6 +347,7 @@ def delivery_add(
         ),
     )
     click.echo(f"{written} taken in.")
+    context.note("weighed in", ticket, f"{written.net_tonnes:.2f}t against {purchase_code}")
 
 
 @delivery.command("harvest")
@@ -374,6 +375,7 @@ def delivery_sample(
     )
     take_sample(context.book(), ticket, analysis, note)
     click.echo(f"{ticket} sampled as {reference}, {len(analysis)} determinations.")
+    context.note("sampled", ticket, reference)
 
 
 @delivery.command("grade")
@@ -403,7 +405,9 @@ def delivery_grade(context: Context, ticket: str, findings: tuple[str, ...]) -> 
     if grading.rejected:
         reasons = ", ".join(str(reason) for reason in grading.rejections)
         click.echo(f"{ticket} REJECTED: {reasons}")
+        context.note("rejected", ticket, reasons)
         return
+    context.note("graded", ticket, f"{grading.outcome}, {grading.settled_tonnes:.3f}t")
     click.echo(f"{ticket} {grading.outcome}, {grading.settled_tonnes:.3f}t settled.")
     for line in grading.adjustments:
         click.echo(f"  {line}")

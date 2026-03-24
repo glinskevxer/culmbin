@@ -22,6 +22,7 @@ def clean() -> None:
 def clean_record(context: Context, vessel: str, by_whom: str, note: str) -> None:
     """Write down that a vessel was cleaned."""
     record_cleaning(context.book(), vessel, context.on, by_whom, note)
+    context.note("cleaned", vessel, note or "no note")
     click.echo(f"{vessel} cleaned on {context.on} by {by_whom}.")
 
 

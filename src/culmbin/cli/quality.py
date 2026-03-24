@@ -58,6 +58,7 @@ def complaint_raise(
             shipment=shipment,
         ),
     )
+    context.note("complaint raised", code, summary)
     click.echo(f"{written}")
     if not written.traceable and written.about_the_malt:
         click.echo("no shipment against it, so it cannot be walked back yet.")
@@ -95,6 +96,7 @@ def complaint_investigate(context: Context, code: str) -> None:
 def complaint_close(context: Context, code: str, state: str, finding: str) -> None:
     """Close a complaint, with what was found written down."""
     closed = close(context.book(), code, ComplaintState(state), context.on, finding)
+    context.note("complaint closed", code, f"{state}: {finding}")
     click.echo(f"{code} closed as {state} after {closed.days_open(context.on)} days.")
 
 

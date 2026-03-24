@@ -150,6 +150,7 @@ def bin_receive(context: Context, code: str, piece: str, tonnes: float, moisture
     """
     after = receive(context.book(), code, piece, tonnes, moisture, context.on)
     held = contents_of(context.book(), code)
+    context.note("binned", code, f"{tonnes:.2f}t of {piece}")
     click.echo(f"{code} holds {held.tonnes:.2f}t at {held.moisture:.2f}%.")
     if after.mixed:
         click.echo(f"{code} is now MIXED and no lot off it can declare a variety.")
@@ -173,6 +174,7 @@ def bin_issue(context: Context, code: str, tonnes: float, note: str) -> None:
 def bin_seal(context: Context, code: str) -> None:
     """Seal a bin so a lot can be taken off it."""
     seal(context.book(), code)
+    context.note("sealed", code)
     click.echo(f"{code} sealed.")
 
 
@@ -227,6 +229,7 @@ def lot_seal(context: Context, code: str, malt_bin_code: str) -> None:
     """Take a lot off a sealed bin."""
     sealed = seal_lot(context.book(), code, malt_bin_code, context.on)
     variety = sealed.variety or "no variety, the bin is mixed"
+    context.note("lotted", code, f"{sealed.tonnes:.2f}t off {malt_bin_code}")
     click.echo(f"{sealed.code} sealed, {sealed.tonnes:.2f}t, {variety}.")
 
 
@@ -245,6 +248,7 @@ def lot_certify(
     )
     save_analysis(context.book(), analysis, note)
     certify(context.book(), code, reference)
+    context.note("certified", code, reference)
     click.echo(f"{code} certified as {reference}, {len(analysis)} determinations.")
 
 

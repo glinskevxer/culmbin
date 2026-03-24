@@ -27,6 +27,7 @@ from culmbin.cli.cleaning import clean
 from culmbin.cli.context import DEFAULT_BOOK, Context, pass_context
 from culmbin.cli.energy import gas
 from culmbin.cli.intake import delivery, purchase, standard
+from culmbin.cli.journal import journal
 from culmbin.cli.lab import blend, lot, malt_bin, spec
 from culmbin.cli.pages import report, trace
 from culmbin.cli.process import piece, recipe
@@ -37,6 +38,7 @@ from culmbin.cli.tools import export, find, registers
 from culmbin.cli.yard import silo
 from culmbin.errors import CulmbinError
 from culmbin.store.book import Book
+from culmbin.store.journal import UNKNOWN
 from culmbin.store.migrations import current_version, latest_version, migrate, pending
 
 
@@ -51,6 +53,12 @@ from culmbin.store.migrations import current_version, latest_version, migrate, p
     help="the SQLite file to work in.",
 )
 @click.option(
+    "--by",
+    "actor",
+    default=None,
+    help="who is at the keyboard, for the journal. Defaults to nobody named.",
+)
+@click.option(
     "--on",
     "on",
     default=None,
@@ -58,10 +66,10 @@ from culmbin.store.migrations import current_version, latest_version, migrate, p
     help="the day to work as, for reports and records. Defaults to today.",
 )
 @click.pass_context
-def cli(context: click.Context, book_path: Path, on: dt.datetime | None) -> None:
+def cli(context: click.Context, book_path: Path, on: dt.datetime | None, actor: str | None) -> None:
     """Record keeping for a malthouse."""
     day = dt.date.today() if on is None else on.date()  # noqa: DTZ011
-    context.obj = Context(path=str(book_path), on=day)
+    context.obj = Context(path=str(book_path), on=day, actor=actor or UNKNOWN)
     context.call_on_close(context.obj.close)
 
 
@@ -122,6 +130,7 @@ cli.add_command(contract)
 cli.add_command(export)
 cli.add_command(find)
 cli.add_command(gas)
+cli.add_command(journal)
 cli.add_command(lot)
 cli.add_command(malt_bin)
 cli.add_command(party)

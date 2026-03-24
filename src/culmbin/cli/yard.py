@@ -41,6 +41,7 @@ def silo_tip(context: Context, code: str, ticket: str) -> None:
     """
     after = tip(context.book(), code, ticket, context.on)
     holding = holding_in(context.book(), code)
+    context.note("tipped", ticket, f"into {code}")
     click.echo(f"{holding}")
     if after.mixed:
         click.echo(f"{code} is now MIXED and cannot charge a piece at all.")

@@ -236,6 +236,7 @@ def ship_allocate(
         vehicle=vehicle,
     )
     free = availability(context.book(), lot)
+    context.note("allocated", code, f"{tonnes:.2f}t of {lot} to {contract_code}")
     click.echo(f"{shipment} planned, {free.free_tonnes:.2f}t left on {lot}.")
 
 
@@ -249,6 +250,7 @@ def ship_load(context: Context, code: str, tonnes: float, moisture: float) -> No
     loaded = load(context.book(), code, tonnes, moisture, context.on)
     contract_code = get_contract(context.book(), loaded.contract)
     drawn = loaded.contract_tonnes(contract_code.moisture)
+    context.note("loaded", code, f"{tonnes:.2f}t at {moisture:.2f}%")
     click.echo(f"{loaded} loaded.")
     click.echo(
         f"draws {drawn:.3f} contract tonnes at {contract_code.moisture:.1f}%, "
@@ -262,6 +264,7 @@ def ship_load(context: Context, code: str, tonnes: float, moisture: float) -> No
 def ship_despatch(context: Context, code: str) -> None:
     """Send a loaded shipment out. It does not change again afterwards."""
     despatch(context.book(), code)
+    context.note("despatched", code)
     click.echo(f"{code} despatched.")
 
 
@@ -272,6 +275,7 @@ def ship_cancel(context: Context, code: str) -> None:
     """Give up a slot in the loading diary and put the malt back."""
     shipment = cancel(context.book(), code)
     free = availability(context.book(), shipment.lot)
+    context.note("cancelled", code)
     click.echo(f"{code} cancelled, {free.free_tonnes:.2f}t back on {shipment.lot}.")
 
 

@@ -296,6 +296,28 @@ Every stripped piece with no meter reading against it.
 
 Make a book, or bring an existing one up to date.
 
+## `culmbin journal`
+
+What was done to the book, by whom, and when.
+
+## `culmbin journal list`
+
+Everything done over a stretch of days.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--by` |  | only what one person did. |
+| `--from` |  | the first day. Defaults to the first of the month. |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+
+## `culmbin journal show SUBJECT`
+
+Everything ever done to one thing, oldest first.
+
+## `culmbin journal who`
+
+Everybody who has done anything, and how much is unattributed.
+
 ## `culmbin lot`
 
 Sealed parcels of malt.

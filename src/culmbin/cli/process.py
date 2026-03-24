@@ -199,6 +199,7 @@ def piece_charge(
         curve,
         share=share,
     )
+    context.note("charged", code, f"{tonnes:.2f}t into {steep}")
     click.echo(f"{written} charged, {written.charge_dry_tonnes:.2f}t dry matter.")
 
 
@@ -248,6 +249,7 @@ def piece_cast(
 ) -> None:
     """Cast a piece out of the steep and into a bed."""
     moved = cast(context.book(), code, into, context.on, tonnes, moisture, depth, share=share)
+    context.note("cast", code, f"into {into} at {depth:.0f}cm")
     click.echo(f"{moved} cast at {depth:.0f}cm.")
 
 
@@ -259,6 +261,7 @@ def piece_cast(
 def piece_kiln(context: Context, code: str, into: str, share: bool) -> None:
     """Move a piece off the floor and onto a kiln."""
     moved = load_kiln(context.book(), code, into, context.on, share=share)
+    context.note("loaded", code, f"onto {into}")
     click.echo(f"{moved} loaded.")
 
 
@@ -272,6 +275,7 @@ def piece_strip(context: Context, code: str, malt: float, moisture: float, culm:
     """Take a piece off the kiln and weigh the malt and the culm."""
     strip_kiln(context.book(), code, context.on, malt, moisture, culm)
     balance = balance_of(context.book(), code)
+    context.note("stripped", code, f"{malt:.2f}t at {moisture:.1f}%")
     click.echo(f"{code} stripped, {malt:.2f}t at {moisture:.1f}%.")
     click.echo(f"malting loss {balance.malting_loss:.2f}%, yield {balance.yield_percent:.2f}%.")
 
@@ -283,6 +287,7 @@ def piece_strip(context: Context, code: str, malt: float, moisture: float, culm:
 def piece_writeoff(context: Context, code: str, note: str) -> None:
     """Write a piece off from wherever it had got to."""
     write_off_piece(context.book(), code, context.on, note)
+    context.note("written off", code, note)
     click.echo(f"{code} written off: {note}")
 
 

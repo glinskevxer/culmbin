@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import click
 
 from culmbin.store.book import Book
+from culmbin.store.journal import UNKNOWN, record
 from culmbin.store.migrations import migrate
 
 DEFAULT_BOOK = "culmbin.sqlite3"
@@ -21,10 +22,11 @@ DEFAULT_BOOK = "culmbin.sqlite3"
 
 @dataclass
 class Context:
-    """A path, a day, and a book once something asks for one."""
+    """A path, a day, who is at the keyboard, and a book once one is asked for."""
 
     path: str
     on: dt.date
+    actor: str = UNKNOWN
     _book: Book | None = None
 
     def book(self) -> Book:
@@ -40,6 +42,15 @@ class Context:
         if self._book is not None:
             self._book.close()
             self._book = None
+
+    def note(self, action: str, subject: str, detail: str = "") -> None:
+        """Write in the journal that this command did something.
+
+        Every command that changes the book calls this, and no command that
+        only reads it does. That is the whole rule: the journal is what was
+        done, and looking at something is not doing anything to it.
+        """
+        record(self.book(), self.on, self.actor, action, subject, detail)
 
     @property
     def stamp(self) -> str:
