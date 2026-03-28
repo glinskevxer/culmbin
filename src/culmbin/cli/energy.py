@@ -7,9 +7,9 @@ import datetime as dt
 import click
 
 from culmbin.cli.context import Context, pass_context
+from culmbin.cli.window import window_for, window_options
 from culmbin.report.energy import energy_page
 from culmbin.store.energy import get_run, record_run, suspect_runs, unmetered
-from culmbin.units.season import Window
 
 
 @click.group()
@@ -80,23 +80,8 @@ def gas_suspect(context: Context) -> None:
 
 
 @gas.command("list")
-@click.option(
-    "--from",
-    "opens",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=None,
-    help="the first day. Defaults to the first of the month.",
-)
-@click.option(
-    "--to",
-    "closes",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=None,
-    help="the last day. Defaults to the day being worked as.",
-)
+@window_options
 @pass_context
 def gas_list(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """Print the gas page."""
-    end = context.on if closes is None else closes.date()
-    start = end.replace(day=1) if opens is None else opens.date()
-    click.echo(energy_page(context.book(), Window(start, end)), nl=False)
+    click.echo(energy_page(context.book(), window_for(context, opens, closes)), nl=False)

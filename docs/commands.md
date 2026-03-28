@@ -140,8 +140,8 @@ Print the quality page.
 
 | option | required | what it is for |
 | --- | --- | --- |
-| `--from` |  | the first day. Defaults to the first of the month. |
 | `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
 
 ## `culmbin complaint raise CODE CUSTOMER SUMMARY`
 
@@ -267,8 +267,8 @@ Print the gas page.
 
 | option | required | what it is for |
 | --- | --- | --- |
-| `--from` |  | the first day. Defaults to the first of the month. |
 | `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
 
 ## `culmbin gas record PIECE`
 
@@ -307,8 +307,8 @@ Everything done over a stretch of days.
 | option | required | what it is for |
 | --- | --- | --- |
 | `--by` |  | only what one person did. |
-| `--from` |  | the first day. Defaults to the first of the month. |
 | `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
 
 ## `culmbin journal show SUBJECT`
 
@@ -698,12 +698,12 @@ Send a loaded shipment out. It does not change again afterwards.
 
 ## `culmbin ship diary`
 
-Print the loading diary for a stretch of days, a week by default.
+Print the loading diary, a week ahead by default.
 
 | option | required | what it is for |
 | --- | --- | --- |
-| `--from` |  | the first day. Defaults to today. |
-| `--to` |  | the last day. Defaults to a week on. |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
 
 ## `culmbin ship list`
 

@@ -14,6 +14,7 @@ from decimal import Decimal
 import click
 
 from culmbin.cli.context import Context, echo_lines, pass_context
+from culmbin.cli.window import week_from, window_options
 from culmbin.model.enums import ContractState
 from culmbin.model.sales import Call, Contract
 from culmbin.report.layout import Align, Column, table
@@ -280,26 +281,12 @@ def ship_cancel(context: Context, code: str) -> None:
 
 
 @ship.command("diary")
-@click.option(
-    "--from",
-    "opens",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=None,
-    help="the first day. Defaults to today.",
-)
-@click.option(
-    "--to",
-    "closes",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=None,
-    help="the last day. Defaults to a week on.",
-)
+@window_options
 @pass_context
 def ship_diary(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
-    """Print the loading diary for a stretch of days, a week by default."""
-    start = context.on if opens is None else opens.date()
-    end = start + dt.timedelta(days=6) if closes is None else closes.date()
-    click.echo(diary_page(context.book(), start, end), nl=False)
+    """Print the loading diary, a week ahead by default."""
+    week = week_from(context, opens, closes)
+    click.echo(diary_page(context.book(), week.start, week.end), nl=False)
 
 
 @ship.command("show")

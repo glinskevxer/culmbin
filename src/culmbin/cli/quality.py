@@ -7,12 +7,12 @@ import datetime as dt
 import click
 
 from culmbin.cli.context import Context, pass_context
+from culmbin.cli.window import window_for, window_options
 from culmbin.model.complaint import Complaint
 from culmbin.model.enums import ComplaintKind, ComplaintState
 from culmbin.report.quality import quality_page
 from culmbin.store.complaints import attach, close, get_complaint, investigate, raise_complaint
 from culmbin.trace.walk import backward_from_shipment
-from culmbin.units.season import Window
 
 CLOSING = [
     ComplaintState.UPHELD.value,
@@ -119,23 +119,9 @@ def complaint_show(context: Context, code: str) -> None:
 
 
 @complaint.command("list")
-@click.option(
-    "--from",
-    "opens",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=None,
-    help="the first day. Defaults to the first of the month.",
-)
-@click.option(
-    "--to",
-    "closes",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=None,
-    help="the last day. Defaults to the day being worked as.",
-)
+@window_options
 @pass_context
 def complaint_list(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """Print the quality page."""
-    end = context.on if closes is None else closes.date()
-    start = end.replace(day=1) if opens is None else opens.date()
-    click.echo(quality_page(context.book(), Window(start, end), context.on), nl=False)
+    window = window_for(context, opens, closes)
+    click.echo(quality_page(context.book(), window, context.on), nl=False)

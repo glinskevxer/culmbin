@@ -13,12 +13,11 @@ in a hurry means.
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Callable
-from typing import Any, TypeVar
 
 import click
 
 from culmbin.cli.context import Context, pass_context
+from culmbin.cli.window import window_for, window_options
 from culmbin.report.cleaning import cleaning_page
 from culmbin.report.energy import energy_page
 from culmbin.report.floor import in_process_page, plant_page, shift_sheet
@@ -30,34 +29,6 @@ from culmbin.report.sales import call_page, contract_page
 from culmbin.report.stock import bin_page, laboratory_page, stock_page
 from culmbin.report.walks import investigation_page, recall_page
 from culmbin.report.yard import yard_page
-from culmbin.units.season import Window
-
-F = TypeVar("F", bound=Callable[..., Any])
-
-
-def _window(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> Window:
-    """The window a page covers: the month to date unless told otherwise."""
-    end = context.on if closes is None else closes.date()
-    start = end.replace(day=1) if opens is None else opens.date()
-    return Window(start, end)
-
-
-def _window_options(command: F) -> F:
-    """Add `--from` and `--to` to a command, since five of them want them."""
-    dated = click.option(
-        "--from",
-        "opens",
-        type=click.DateTime(formats=["%Y-%m-%d"]),
-        default=None,
-        help="the first day. Defaults to the first of the month.",
-    )(command)
-    return click.option(
-        "--to",
-        "closes",
-        type=click.DateTime(formats=["%Y-%m-%d"]),
-        default=None,
-        help="the last day. Defaults to the day being worked as.",
-    )(dated)
 
 
 @click.group()
@@ -66,32 +37,32 @@ def report() -> None:
 
 
 @report.command("intake")
-@_window_options
+@window_options
 @pass_context
 def report_intake(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """What came in, what is waiting, and what it settled at."""
-    click.echo(day_sheet(context.book(), _window(context, opens, closes), context.on), nl=False)
+    click.echo(day_sheet(context.book(), window_for(context, opens, closes), context.on), nl=False)
 
 
 @report.command("rejections")
-@_window_options
+@window_options
 @pass_context
 def report_rejections(
     context: Context, opens: dt.datetime | None, closes: dt.datetime | None
 ) -> None:
     """Every load that went back, with the reason on each."""
-    click.echo(rejection_page(context.book(), _window(context, opens, closes)), nl=False)
+    click.echo(rejection_page(context.book(), window_for(context, opens, closes)), nl=False)
 
 
 @report.command("grower")
 @click.argument("party")
-@_window_options
+@window_options
 @pass_context
 def report_grower(
     context: Context, party: str, opens: dt.datetime | None, closes: dt.datetime | None
 ) -> None:
     """Every load from one grower, for the statement."""
-    click.echo(grower_page(context.book(), party, _window(context, opens, closes)), nl=False)
+    click.echo(grower_page(context.book(), party, window_for(context, opens, closes)), nl=False)
 
 
 @report.command("floor")
@@ -110,13 +81,15 @@ def report_floor(context: Context, celsius: float) -> None:
 
 
 @report.command("complaints")
-@_window_options
+@window_options
 @pass_context
 def report_complaints(
     context: Context, opens: dt.datetime | None, closes: dt.datetime | None
 ) -> None:
     """Every complaint, with the ones nobody can walk back at the top."""
-    click.echo(quality_page(context.book(), _window(context, opens, closes), context.on), nl=False)
+    click.echo(
+        quality_page(context.book(), window_for(context, opens, closes), context.on), nl=False
+    )
 
 
 @report.command("cleaning")
@@ -127,11 +100,11 @@ def report_cleaning(context: Context) -> None:
 
 
 @report.command("gas")
-@_window_options
+@window_options
 @pass_context
 def report_gas(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """Every kiln run, with the ones outside the band at the top."""
-    click.echo(energy_page(context.book(), _window(context, opens, closes)), nl=False)
+    click.echo(energy_page(context.book(), window_for(context, opens, closes)), nl=False)
 
 
 @report.command("yard")
@@ -142,11 +115,11 @@ def report_yard(context: Context) -> None:
 
 
 @report.command("month")
-@_window_options
+@window_options
 @pass_context
 def report_month(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """One walk from the weighbridge to the loading bay, as a balance."""
-    click.echo(month_page(context.book(), _window(context, opens, closes)), nl=False)
+    click.echo(month_page(context.book(), window_for(context, opens, closes)), nl=False)
 
 
 @report.command("plant")
@@ -200,11 +173,11 @@ def report_contracts(context: Context, customer: str | None) -> None:
 
 
 @report.command("calls")
-@_window_options
+@window_options
 @pass_context
 def report_calls(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """What customers have asked for against each contract."""
-    click.echo(call_page(context.book(), _window(context, opens, closes)), nl=False)
+    click.echo(call_page(context.book(), window_for(context, opens, closes)), nl=False)
 
 
 @click.group()

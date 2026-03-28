@@ -7,6 +7,7 @@ import datetime as dt
 import click
 
 from culmbin.cli.context import Context, echo_lines, pass_context
+from culmbin.cli.window import window_for, window_options
 from culmbin.store.journal import about, actors, entries, unattributed
 
 
@@ -29,28 +30,14 @@ def journal_show(context: Context, subject: str) -> None:
 
 @journal.command("list")
 @click.option("--by", "actor", default=None, help="only what one person did.")
-@click.option(
-    "--from",
-    "opens",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=None,
-    help="the first day. Defaults to the first of the month.",
-)
-@click.option(
-    "--to",
-    "closes",
-    type=click.DateTime(formats=["%Y-%m-%d"]),
-    default=None,
-    help="the last day. Defaults to the day being worked as.",
-)
+@window_options
 @pass_context
 def journal_list(
     context: Context, actor: str | None, opens: dt.datetime | None, closes: dt.datetime | None
 ) -> None:
     """Everything done over a stretch of days."""
-    end = context.on if closes is None else closes.date()
-    start = end.replace(day=1) if opens is None else opens.date()
-    found = entries(context.book(), actor=actor, since=start, until=end)
+    window = window_for(context, opens, closes)
+    found = entries(context.book(), actor=actor, since=window.start, until=window.end)
     if not found:
         click.echo("nothing was done.")
         return
