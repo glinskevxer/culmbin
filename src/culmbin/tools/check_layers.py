@@ -30,7 +30,7 @@ BELOW: Mapping[str, frozenset[str]] = {
     "intake": frozenset({"errors", "units", "model", "store"}),
     "process": frozenset({"errors", "units", "model", "store"}),
     "blend": frozenset({"errors", "units", "model", "store"}),
-    "sales": frozenset({"errors", "units", "model", "store", "report"}),
+    "sales": frozenset({"errors", "units", "model", "store", "process", "report"}),
     "trace": frozenset({"errors", "units", "model", "store"}),
     "report": frozenset(
         {"errors", "units", "model", "store", "intake", "process", "blend", "sales", "trace"}

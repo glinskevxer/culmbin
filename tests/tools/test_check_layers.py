@@ -27,6 +27,12 @@ def test_units_may_not_import_from_model() -> None:
     assert "store" not in check_layers.BELOW["model"]
 
 
+def test_the_plant_does_not_import_from_the_sales_desk() -> None:
+    """Sales may reach down into the plant, and the reverse would be a circle."""
+    assert "process" in check_layers.BELOW["sales"]
+    assert "sales" not in check_layers.BELOW["process"]
+
+
 def test_nothing_may_import_from_the_console_script() -> None:
     for layer, allowed in check_layers.BELOW.items():
         if layer != "tools":
