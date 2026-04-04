@@ -178,6 +178,10 @@ Write a contract, in draft.
 
 Close a contract. It does not reopen.
 
+## `culmbin contract cover`
+
+Malt in hand against malt promised, and the lots nothing can take.
+
 ## `culmbin contract list`
 
 Print where the contracts stand.
@@ -599,6 +603,10 @@ Where the contracts stand, in all three tonnages.
 | option | required | what it is for |
 | --- | --- | --- |
 | `--customer` |  | only this customer. |
+
+## `culmbin report cover`
+
+Malt in hand against malt promised, before anybody signs anything.
 
 ## `culmbin report floor`
 

@@ -18,7 +18,7 @@ from culmbin.cli.window import week_from, window_options
 from culmbin.model.enums import ContractState
 from culmbin.model.sales import Call, Contract
 from culmbin.report.layout import Align, Column, table
-from culmbin.report.sales import contract_page, diary_page
+from culmbin.report.sales import contract_page, cover_page, diary_page
 from culmbin.sales.desk import allocate, availability, cancel, despatch, load
 from culmbin.store.contracts import (
     add_call,
@@ -142,6 +142,13 @@ def contract_show(context: Context, code: str) -> None:
     click.echo(f"delivered  {where.delivered:.1f}t")
     click.echo(f"committed  {where.committed:.1f}t")
     click.echo(f"left       {where.outstanding:.1f}t")
+
+
+@contract.command("cover")
+@pass_context
+def contract_cover(context: Context) -> None:
+    """Malt in hand against malt promised, and the lots nothing can take."""
+    click.echo(cover_page(context.book()), nl=False)
 
 
 @click.group()

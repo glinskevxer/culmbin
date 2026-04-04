@@ -230,3 +230,15 @@ def test_the_shipment_list_narrows_by_lot(invoke: Invoke) -> None:
 def test_the_contract_page_prints(invoke: Invoke) -> None:
     selling(invoke)
     assert "contract position" in invoke("contract", "list").output
+
+
+def test_the_cover_page_prints(invoke: Invoke) -> None:
+    selling(invoke)
+    result = invoke("contract", "cover")
+    assert result.exit_code == 0
+    assert "free to sell" in result.output
+
+
+def test_the_cover_report_is_the_same_page(invoke: Invoke) -> None:
+    selling(invoke)
+    assert "cover" in invoke("report", "cover").output

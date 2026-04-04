@@ -5,11 +5,12 @@ from __future__ import annotations
 import datetime as dt
 
 from culmbin.model.sales import Call
-from culmbin.report.sales import call_page, contract_page, diary_page
+from culmbin.report.sales import call_page, contract_page, cover_page, diary_page
 from culmbin.sales.desk import allocate, despatch, load
 from culmbin.store.book import Book
 from culmbin.store.contracts import add_call
 from culmbin.units.season import Window
+from tests.support.books import a_lot
 
 ON = dt.date(2025, 11, 20)
 WEEK = Window(dt.date(2025, 11, 17), dt.date(2025, 11, 21))
@@ -89,3 +90,42 @@ def test_every_page_ends_in_a_newline_and_has_no_trailing_space(desk: Book) -> N
     ):
         assert text.endswith("\n")
         assert all(line == line.rstrip() for line in text.splitlines())
+
+
+def test_the_cover_page_shows_both_figures_apart(desk: Book) -> None:
+    """They are deliberately not added together."""
+    text = cover_page(desk)
+    assert "free to sell" in text
+    assert "coming off the floor" in text
+    assert "short with the floor" in text
+
+
+def test_a_lot_says_which_contracts_it_could_serve(desk: Book) -> None:
+    text = cover_page(desk)
+    assert "L-CLEAN" in text
+    assert "C-2025-031" in text
+
+
+def test_a_lot_nothing_can_take_is_at_the_top(desk: Book) -> None:
+    a_lot(desk, "L-DARK", "B05", ("LAUR",), "M-DARK", colour=6.2)
+    text = cover_page(desk)
+    lines = text.splitlines()
+    assert "lots nothing can take" in text
+    assert lines.index("lots nothing can take") < lines.index("what each lot could serve")
+    assert "NOTHING" in text
+
+
+def test_a_desk_with_no_contracts_says_it_is_covered(desk: Book) -> None:
+    desk.execute("UPDATE contract SET state = 'closed'")
+    assert "could be served out of the bins today" in cover_page(desk)
+
+
+def test_a_desk_with_no_malt_says_so(desk: Book) -> None:
+    desk.execute("DELETE FROM malt_lot")
+    assert "no certified malt" in cover_page(desk)
+
+
+def test_the_cover_page_ends_in_a_newline(desk: Book) -> None:
+    text = cover_page(desk)
+    assert text.endswith("\n")
+    assert all(line == line.rstrip() for line in text.splitlines())

@@ -25,7 +25,7 @@ from culmbin.report.intake import day_sheet, grower_page, rejection_page
 from culmbin.report.month import month_page
 from culmbin.report.process import balance_page
 from culmbin.report.quality import quality_page
-from culmbin.report.sales import call_page, contract_page
+from culmbin.report.sales import call_page, contract_page, cover_page
 from culmbin.report.stock import bin_page, laboratory_page, stock_page
 from culmbin.report.walks import investigation_page, recall_page
 from culmbin.report.yard import yard_page
@@ -97,6 +97,13 @@ def report_complaints(
 def report_cleaning(context: Context) -> None:
     """Every vessel, when it was cleaned, and which ones nobody is policing."""
     click.echo(cleaning_page(context.book(), context.on), nl=False)
+
+
+@report.command("cover")
+@pass_context
+def report_cover(context: Context) -> None:
+    """Malt in hand against malt promised, before anybody signs anything."""
+    click.echo(cover_page(context.book()), nl=False)
 
 
 @report.command("gas")

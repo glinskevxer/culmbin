@@ -15,8 +15,11 @@ import datetime as dt
 
 from culmbin.model.enums import ContractState
 from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.sales.cover import contracts_a_lot_could_serve, cover, orphan_lots
+from culmbin.sales.desk import availability
 from culmbin.store.book import Book
 from culmbin.store.contracts import called_tonnes, list_contracts, position
+from culmbin.store.lots import list_lots
 from culmbin.store.shipments import loading_diary
 from culmbin.units.season import Window
 
@@ -145,5 +148,64 @@ def diary_page(book: Book, start: dt.date, end: dt.date) -> str:
                 rows,
             ),
             [] if rows else ["the diary is empty."],
+        ]
+    )
+
+
+def cover_page(book: Book) -> str:
+    """Malt in hand against malt promised, and the lots nothing can take.
+
+    The two figures at the top are the ones the desk reads before signing
+    anything, and they are deliberately not added together. Malt on the
+    floor is four days off and might come off out of specification.
+    """
+    where = cover(book)
+    orphans = orphan_lots(book)
+    rows = []
+    for lot in list_lots(book, certified=True):
+        free = availability(book, lot.code)
+        if free.empty:
+            continue
+        serves = contracts_a_lot_could_serve(book, lot.code)
+        rows.append(
+            [
+                lot.code,
+                lot.variety or "mixed",
+                f"{free.free_tonnes:.2f}",
+                str(len(serves)),
+                ", ".join(contract.code for contract in serves) or "NOTHING",
+            ]
+        )
+    return page(
+        [
+            heading("cover"),
+            pairs(
+                [
+                    ("sealed in bins", f"{where.sealed_tonnes:.2f}"),
+                    ("free to sell", f"{where.free_tonnes:.2f}"),
+                    ("coming off the floor", f"{where.coming_tonnes:.2f}"),
+                    ("promised", f"{where.outstanding_tonnes:.2f}"),
+                    ("short by", f"{where.short_by:.2f}"),
+                    ("short with the floor", f"{where.short_by_with_the_floor:.2f}"),
+                ]
+            ),
+            ["everything signed could be served out of the bins today."] if where.covered else [],
+            table_block(
+                "lots nothing can take",
+                [Column("lot"), Column("variety"), Column("free", Align.RIGHT)],
+                [[code, "", ""] for code in orphans],
+            ),
+            table_block(
+                "what each lot could serve",
+                [
+                    Column("lot"),
+                    Column("variety"),
+                    Column("free", Align.RIGHT),
+                    Column("contracts", Align.RIGHT),
+                    Column("which"),
+                ],
+                rows,
+            ),
+            [] if rows else ["there is no certified malt with anything left on it."],
         ]
     )
