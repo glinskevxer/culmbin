@@ -7,7 +7,9 @@ from pathlib import Path
 import click
 
 from culmbin.cli.context import Context, pass_context
+from culmbin.report.book import book_page
 from culmbin.store.export import export_book, exportable
+from culmbin.store.integrity import faults, worth_a_look
 from culmbin.store.search import counts, search
 
 
@@ -44,3 +46,23 @@ def registers(context: Context) -> None:
     for kind, total in counts(context.book()):
         click.echo(f"{kind:<16}{total:>8}")
     click.echo(f"{len(exportable(context.book()))} tables would be exported.")
+
+
+@click.command()
+@click.option("--quiet", is_flag=True, help="say only whether anything is wrong.")
+@pass_context
+def doctor(context: Context, quiet: bool) -> None:
+    """Ask the book whether it still makes sense.
+
+    Exits non-zero when something is actually wrong, so it can be put in a
+    cron job. Things that are merely odd do not fail it.
+    """
+    book = context.book()
+    wrong = faults(book)
+    if quiet:
+        odd = worth_a_look(book)
+        click.echo(f"{len(wrong)} wrong, {len(odd)} worth a look.")
+    else:
+        click.echo(book_page(book), nl=False)
+    if wrong:
+        raise SystemExit(1)

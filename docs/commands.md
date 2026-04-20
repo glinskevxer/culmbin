@@ -253,6 +253,14 @@ Say what a graded load is worth.
 
 Every load that cannot move on, and what it is waiting for.
 
+## `culmbin doctor`
+
+Ask the book whether it still makes sense.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--quiet` |  | say only whether anything is wrong. |
+
 ## `culmbin export INTO`
 
 Write the whole book out as CSV, one file per table.

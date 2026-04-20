@@ -41,3 +41,24 @@ def test_exporting_twice_into_one_directory_is_refused(invoke: Invoke, tmp_path:
     into = tmp_path / "csv"
     invoke("export", str(into))
     assert invoke("export", str(into)).exit_code != 0
+
+
+def test_the_doctor_passes_on_a_fresh_book(invoke: Invoke) -> None:
+    invoke("init")
+    result = invoke("doctor")
+    assert result.exit_code == 0
+    assert "nothing is wrong with this book." in result.output
+
+
+def test_the_doctor_can_be_quiet_for_a_cron_job(invoke: Invoke) -> None:
+    invoke("init")
+    result = invoke("doctor", "--quiet")
+    assert result.exit_code == 0
+    assert "0 wrong" in result.output
+
+
+def test_the_doctor_says_what_is_in_the_book(invoke: Invoke) -> None:
+    invoke("party", "add", "HOLB", "Holbeach", "--role", "grower", on="2011-06-01")
+    result = invoke("doctor")
+    assert "what is in it" in result.output
+    assert "party" in result.output

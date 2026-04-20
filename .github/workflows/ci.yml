@@ -181,6 +181,10 @@ jobs:
           culmbin --book "$book" --on 2026-04-30 report calls
           culmbin --book "$book" find L-1
           culmbin --book "$book" registers
+          culmbin --book "$book" doctor
+          culmbin --book "$book" journal list --from 2025-01-01 --to 2026-12-31
+          culmbin --book "$book" report month --from 2025-11-01 --to 2025-11-30
+          culmbin --book "$book" report cover
           culmbin --book "$book" status
           culmbin --book "$book" backup /tmp/walk-backup.sqlite3
           culmbin --book "$book" export /tmp/walk-csv

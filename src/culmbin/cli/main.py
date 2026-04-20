@@ -34,7 +34,7 @@ from culmbin.cli.process import piece, recipe
 from culmbin.cli.quality import complaint
 from culmbin.cli.registers import party, variety, vessel
 from culmbin.cli.sales import call, contract, ship
-from culmbin.cli.tools import export, find, registers
+from culmbin.cli.tools import doctor, export, find, registers
 from culmbin.cli.yard import silo
 from culmbin.errors import CulmbinError
 from culmbin.store.book import Book
@@ -127,6 +127,7 @@ cli.add_command(call)
 cli.add_command(clean)
 cli.add_command(complaint)
 cli.add_command(contract)
+cli.add_command(doctor)
 cli.add_command(export)
 cli.add_command(find)
 cli.add_command(gas)
