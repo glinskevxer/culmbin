@@ -26,6 +26,7 @@ from culmbin.report.month import month_page
 from culmbin.report.process import balance_page
 from culmbin.report.quality import quality_page
 from culmbin.report.sales import call_page, contract_page, cover_page
+from culmbin.report.statement import statement_page
 from culmbin.report.stock import bin_page, laboratory_page, stock_page
 from culmbin.report.walks import investigation_page, recall_page
 from culmbin.report.yard import yard_page
@@ -63,6 +64,17 @@ def report_grower(
 ) -> None:
     """Every load from one grower, for the statement."""
     click.echo(grower_page(context.book(), party, window_for(context, opens, closes)), nl=False)
+
+
+@report.command("statement")
+@click.argument("party")
+@window_options
+@pass_context
+def report_statement(
+    context: Context, party: str, opens: dt.datetime | None, closes: dt.datetime | None
+) -> None:
+    """The grower's statement, with every deduction as a line of its own."""
+    click.echo(statement_page(context.book(), party, window_for(context, opens, closes)), nl=False)
 
 
 @report.command("floor")

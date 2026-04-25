@@ -681,6 +681,15 @@ Every load that went back, with the reason on each.
 | `--to` |  | the last day. Defaults to the day being worked as. |
 | `--from` |  | the first day. Defaults to the first of the month. |
 
+## `culmbin report statement PARTY`
+
+The grower's statement, with every deduction as a line of its own.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
+
 ## `culmbin report stock`
 
 Every lot, with what is free on it.

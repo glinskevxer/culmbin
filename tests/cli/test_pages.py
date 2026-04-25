@@ -84,3 +84,15 @@ def test_the_month_page_prints_on_an_empty_book(invoke: Invoke) -> None:
 def test_the_month_page_takes_a_window(invoke: Invoke) -> None:
     result = invoke("report", "month", "--from", "2025-09-01", "--to", "2025-09-30")
     assert "2025-09-01..2025-09-30" in result.output
+
+
+def test_the_statement_prints_for_a_grower(invoke: Invoke) -> None:
+    invoke("party", "add", "HOLB", "Holbeach", "--role", "grower", on="2011-06-01")
+    result = invoke("report", "statement", "HOLB", "--from", "2025-09-01", "--to", "2025-09-30")
+    assert result.exit_code == 0
+    assert "statement for Holbeach" in result.output
+
+
+def test_the_statement_for_somebody_who_is_not_there_is_refused(invoke: Invoke) -> None:
+    invoke("init")
+    assert invoke("report", "statement", "NOBODY").exit_code != 0
