@@ -52,3 +52,17 @@ def test_echo_lines_of_nothing_prints_nothing(capsys: pytest.CaptureFixture[str]
     with click.Context(click.Command("x")):
         echo_lines([])
     assert capsys.readouterr().out == ""
+
+
+def test_a_book_can_be_opened_without_migrating_it(tmp_path: Path) -> None:
+    """Migrating first and then reporting nothing to apply is true and useless."""
+    context = Context(path=str(tmp_path / "book.sqlite3"), on=TODAY)
+    book = context.book_as_is()
+    assert current_version(book) == 0
+    context.close()
+
+
+def test_opening_as_is_keeps_the_same_book(tmp_path: Path) -> None:
+    context = Context(path=str(tmp_path / "book.sqlite3"), on=TODAY)
+    assert context.book_as_is() is context.book_as_is()
+    context.close()

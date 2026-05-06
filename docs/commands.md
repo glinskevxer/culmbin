@@ -368,6 +368,10 @@ Print the certificate of analysis for a lot.
 | --- | --- | --- |
 | `--against` |  | assess against a specification. |
 
+## `culmbin migrations`
+
+Every migration this package knows about, and whether the book has it.
+
 ## `culmbin party`
 
 Growers, merchants, customers and hauliers.
@@ -903,6 +907,10 @@ Say everything about one variety.
 ## `culmbin variety withdraw CODE`
 
 Take a variety off the list from today.
+
+## `culmbin version`
+
+Say what this is, what the book is, and what is between them.
 
 ## `culmbin vessel`
 

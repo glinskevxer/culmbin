@@ -37,6 +37,17 @@ class Context:
             self._book = book
         return self._book
 
+    def book_as_is(self) -> Book:
+        """Open the book without migrating it.
+
+        For the one command that has to report what an upgrade *would* do.
+        Asking for `book()` first would migrate it and then report that
+        there was nothing to apply, which is true and useless.
+        """
+        if self._book is None:
+            self._book = Book.open(self.path)
+        return self._book
+
     def close(self) -> None:
         """Close the book if one was opened."""
         if self._book is not None:

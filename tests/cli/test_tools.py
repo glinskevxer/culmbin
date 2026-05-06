@@ -62,3 +62,39 @@ def test_the_doctor_says_what_is_in_the_book(invoke: Invoke) -> None:
     result = invoke("doctor")
     assert "what is in it" in result.output
     assert "party" in result.output
+
+
+def test_the_version_command_says_all_three_numbers(invoke: Invoke) -> None:
+    from culmbin import __version__
+    from culmbin.store.migrations import latest_version
+
+    invoke("init")
+    result = invoke("version")
+    assert result.exit_code == 0
+    assert __version__ in result.output
+    assert f"schema     {latest_version()}" in result.output
+    assert "the book is up to date." in result.output
+
+
+def test_the_version_command_says_what_an_upgrade_would_apply(
+    invoke: Invoke, book_path: Path
+) -> None:
+    """The thing somebody actually wants before an upgrade."""
+    from culmbin.store.book import Book
+
+    with Book.open(book_path) as book:
+        book.executescript(
+            "CREATE TABLE schema_version (version INTEGER PRIMARY KEY, name TEXT NOT NULL, "
+            "applied_at TEXT NOT NULL);"
+            "INSERT INTO schema_version VALUES (1, 'the version table itself', '2025-01-01');"
+        )
+    result = invoke("version")
+    assert "migrations would be applied" in result.output
+    assert "parties, varieties and vessels" in result.output
+
+
+def test_the_migrations_command_marks_what_the_book_has(invoke: Invoke) -> None:
+    invoke("init")
+    result = invoke("migrations")
+    assert "applied" in result.output
+    assert "waiting" not in result.output

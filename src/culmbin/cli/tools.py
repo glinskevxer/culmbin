@@ -6,10 +6,12 @@ from pathlib import Path
 
 import click
 
+from culmbin import __version__
 from culmbin.cli.context import Context, pass_context
 from culmbin.report.book import book_page
 from culmbin.store.export import export_book, exportable
 from culmbin.store.integrity import faults, worth_a_look
+from culmbin.store.migrations import MIGRATIONS, current_version, latest_version, pending
 from culmbin.store.search import counts, search
 
 
@@ -66,3 +68,37 @@ def doctor(context: Context, quiet: bool) -> None:
         click.echo(book_page(book), nl=False)
     if wrong:
         raise SystemExit(1)
+
+
+@click.command()
+@pass_context
+def version(context: Context) -> None:
+    """Say what this is, what the book is, and what is between them.
+
+    `--version` says the package version and stops. This says the package
+    version, the book's schema version, and every migration the book has not
+    had, which is the thing somebody actually wants before an upgrade.
+    """
+    click.echo(f"culmbin    {__version__}")
+    click.echo(f"schema     {latest_version()} in this package")
+    book = context.book_as_is()
+    at = current_version(book)
+    click.echo(f"book       {at} at {context.path}")
+    behind = pending(book)
+    if not behind:
+        click.echo("the book is up to date.")
+        return
+    click.echo(f"{len(behind)} migrations would be applied:")
+    for migration in behind:
+        click.echo(f"  {migration.version:3d}  {migration.name}")
+
+
+@click.command()
+@pass_context
+def migrations(context: Context) -> None:
+    """Every migration this package knows about, and whether the book has it."""
+    book = context.book_as_is()
+    at = current_version(book)
+    for migration in MIGRATIONS:
+        mark = "applied" if migration.version <= at else "waiting"
+        click.echo(f"{migration.version:3d}  {mark}  {migration.name}")

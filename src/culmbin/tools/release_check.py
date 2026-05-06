@@ -9,6 +9,12 @@ exactly why they are worth one command that can be run on a quiet Tuesday.
 - the schema is at the version the migrations say it is
 - the pins and the constraints still agree, because a release ships the
   closure and not the direct pins
+- the changelog entry names the schema version it ships
+
+The last one is the one that was added after a release went out whose
+migrations nobody had mentioned. A version that changes the schema and does
+not say so is a version somebody upgrades to on a Friday afternoon without
+taking a backup first.
 """
 
 from __future__ import annotations
@@ -24,6 +30,7 @@ from culmbin.tools.sources import project_root, report
 
 VERSION_LINE = re.compile(r'^version = "([^"]+)"\s*$', re.MULTILINE)
 CHANGELOG_HEADING = re.compile(r"^## (\d+\.\d+\.\d+)", re.MULTILINE)
+SCHEMA_LINE = re.compile(r"schema version (\d+)", re.IGNORECASE)
 STAMP = "1970-01-01T00:00:00+00:00"
 
 
@@ -42,6 +49,22 @@ def changelog_versions() -> list[str]:
     return CHANGELOG_HEADING.findall(path.read_text(encoding="utf-8"))
 
 
+def newest_entry() -> str:
+    """The text of the newest changelog entry, heading and all."""
+    path = project_root() / "CHANGELOG.md"
+    if not path.exists():
+        return ""
+    text = path.read_text(encoding="utf-8")
+    parts = text.split("\n## ")
+    return "" if len(parts) < 2 else parts[1]
+
+
+def schema_named() -> int | None:
+    """The schema version the newest changelog entry says it ships."""
+    match = SCHEMA_LINE.search(newest_entry())
+    return None if match is None else int(match.group(1))
+
+
 def problems() -> list[str]:
     """Everything that would make this a bad day to cut a release."""
     found = []
@@ -58,6 +81,16 @@ def problems() -> list[str]:
     elif entries[0] != __version__:
         found.append(
             f"CHANGELOG.md: the newest entry is {entries[0]} and the package is {__version__}."
+        )
+    named = schema_named()
+    if entries and named is None:
+        found.append(
+            f"CHANGELOG.md: the entry for {entries[0]} does not say which schema it ships."
+        )
+    elif named is not None and named != latest_version():
+        found.append(
+            f"CHANGELOG.md: the entry says schema version {named} and the migrations "
+            f"are at {latest_version()}."
         )
     found.extend(package_problems())
     with Book.open(MEMORY) as book:
