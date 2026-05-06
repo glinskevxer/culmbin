@@ -18,6 +18,7 @@ import click
 
 from culmbin.cli.context import Context, pass_context
 from culmbin.cli.window import window_for, window_options
+from culmbin.report.barley import barley_page
 from culmbin.report.cleaning import cleaning_page
 from culmbin.report.energy import energy_page
 from culmbin.report.floor import in_process_page, plant_page, shift_sheet
@@ -102,6 +103,14 @@ def report_complaints(
     click.echo(
         quality_page(context.book(), window_for(context, opens, closes), context.on), nl=False
     )
+
+
+@report.command("barley")
+@window_options
+@pass_context
+def report_barley(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
+    """How the barley is grading, by grower, over a stretch of days."""
+    click.echo(barley_page(context.book(), window_for(context, opens, closes)), nl=False)
 
 
 @report.command("cleaning")

@@ -582,6 +582,15 @@ The pages somebody actually reads.
 
 Malting loss and yield for every finished piece.
 
+## `culmbin report barley`
+
+How the barley is grading, by grower, over a stretch of days.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
+
 ## `culmbin report bins`
 
 Every bin, what is in it, and whether it is mixed.
