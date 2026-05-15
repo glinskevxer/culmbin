@@ -633,6 +633,23 @@ BEGIN
 END;
 """
 
+_POINTING_INDEXES = """
+CREATE INDEX cleaning_by_whom ON cleaning (by_whom);
+CREATE INDEX complaint_by_shipment ON complaint (shipment);
+CREATE INDEX contract_by_variety ON contract (variety);
+CREATE INDEX contract_by_specification ON contract (specification);
+CREATE INDEX delivery_by_sample ON delivery (sample);
+CREATE INDEX delivery_by_haulier ON delivery (haulier);
+CREATE INDEX delivery_by_party ON delivery (party, arrived);
+CREATE INDEX grading_by_standard ON grading (standard);
+CREATE INDEX movement_by_vessel ON movement (vessel, on_day);
+CREATE INDEX piece_by_variety ON piece (variety, crop_year);
+CREATE INDEX purchase_by_standard ON purchase (standard);
+CREATE INDEX purchase_by_variety ON purchase (variety);
+CREATE INDEX shipment_by_haulier ON shipment (haulier);
+CREATE INDEX shipment_by_call ON shipment (call_off);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -653,6 +670,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(17, "what the gas meter read across a kiln run", _KILN_RUNS),
     Migration(18, "when a vessel was last cleaned and how often it should be", _CLEANING),
     Migration(19, "an append only journal of what was done and by whom", _JOURNAL),
+    Migration(20, "an index on every column a foreign key points from", _POINTING_INDEXES),
 )
 """Every migration this package knows about, in the order they are applied.
 

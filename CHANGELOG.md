@@ -4,6 +4,23 @@ Everything that changed, newest first. A version is cut when the schema
 changes or when something the office relies on changes shape, and not on a
 timetable.
 
+## 0.3.0
+
+Schema version 20. One migration, and it is indexes only: no table changes
+and nothing to migrate back out of.
+
+- Fourteen foreign keys had nothing indexing the column they point from.
+  SQLite indexes the column being pointed *at*, and every join and every
+  cascade in this package goes the other way, so all fourteen were scans.
+  On a small book nobody would notice; on a season's worth the reports go
+  from a second to a minute.
+- A new check, `culmbin.tools.check_indexes`, builds a book from the
+  migrations and reads the schema out of it, so the rule is enforced against
+  the schema that ships rather than against a list somebody wrote down.
+- A batch of laboratory results can be loaded out of a file, whole or not at
+  all.
+- Grower statements, the barley grading page and the month end balance.
+
 ## 0.2.0
 
 Schema version 19, which is six migrations on from 0.1.0. Take a backup
