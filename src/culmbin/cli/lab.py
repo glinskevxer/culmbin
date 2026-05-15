@@ -8,6 +8,8 @@ should be doing that on a spreadsheet, and everybody does.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import click
 
 from culmbin.blend.plan import Part, assess, common_codes, plan_of, predict
@@ -23,6 +25,7 @@ from culmbin.report.stock import bin_page, laboratory_page, stock_page
 from culmbin.sales.certificate import write
 from culmbin.store.analyses import get_analysis, save_analysis
 from culmbin.store.bins import add_bin, clean_out, contents_of, issue, list_bins, receive, seal
+from culmbin.store.loading import load
 from culmbin.store.lots import certify, get_lot, list_lots, seal_lot
 from culmbin.store.specs import (
     copy_specification,
@@ -282,6 +285,24 @@ def lot_list(context: Context, variety: str | None, uncertified: bool) -> None:
             ],
         )
     )
+
+
+@lot.command("load")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--note", default="", help="anything the laboratory wrote alongside.")
+@pass_context
+def lot_load(context: Context, path: Path, note: str) -> None:
+    """Load a batch of laboratory results out of a file.
+
+    The file loads whole or not at all. Eighty percent of a file is the
+    worst possible outcome, because nobody can tell which twenty percent
+    failed without reading the whole thing.
+    """
+    analyses = load(context.book(), path, note)
+    click.echo(f"{len(analyses)} analyses loaded out of {path.name}.")
+    for analysis in analyses:
+        click.echo(f"  {analysis.reference:<16}{len(analysis)} determinations")
+    context.note("loaded results", path.name, f"{len(analyses)} analyses")
 
 
 @click.command()

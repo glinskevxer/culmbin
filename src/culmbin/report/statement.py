@@ -17,7 +17,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from culmbin.intake.desk import settle_load
-from culmbin.report.layout import Align, Column, heading, money, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, money, note, page, pairs, table_block
 from culmbin.store.book import Book
 from culmbin.store.deliveries import list_deliveries
 from culmbin.store.gradings import find_grading
@@ -106,12 +106,14 @@ def statement_page(book: Book, party: str, window: Window) -> str:
                 [Column("ticket"), Column("why"), Column("what came off")],
                 lines,
             ),
-            [] if loads else ["nothing was delivered."],
-            [
+            note(
+                "nothing was delivered.",
+                when=not loads,
+            ),
+            note(
                 "the weighed column is the lorry and the settled column is what the",
                 "contract pays on. Every difference between them is a line above.",
-            ]
-            if loads
-            else [],
+                when=bool(loads),
+            ),
         ]
     )

@@ -157,6 +157,16 @@ def table_block(title: str, columns: Sequence[Column], rows: Sequence[Sequence[s
     return block(title, table(columns, rows))
 
 
+def note(*lines: str, when: bool = True) -> list[str]:
+    """A line or two of prose, or nothing when the condition does not hold.
+
+    Ten pages had written `[] if rows else ["nothing happened."]` and the
+    other way round, and reading them meant working out which way round each
+    one was every time. This says which way round it is in the word `when`.
+    """
+    return list(lines) if when else []
+
+
 def page(sections: Iterable[Sequence[str]]) -> str:
     """Join sections with a blank line between them, ending in a newline."""
     blocks = [list(section) for section in sections if section]

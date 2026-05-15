@@ -11,7 +11,7 @@ silos marked has half the barley it thinks it has.
 
 from __future__ import annotations
 
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.store.book import Book
 from culmbin.store.deliveries import get_delivery
 from culmbin.store.silos import holding_in, list_silos, untipped
@@ -80,6 +80,9 @@ def yard_page(book: Book) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["there are no silos."],
+            note(
+                "there are no silos.",
+                when=not rows,
+            ),
         ]
     )

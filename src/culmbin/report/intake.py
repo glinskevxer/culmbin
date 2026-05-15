@@ -17,7 +17,7 @@ import datetime as dt
 
 from culmbin.intake.desk import summarise
 from culmbin.model.enums import IntakeOutcome
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.store.book import Book
 from culmbin.store.deliveries import get_delivery, list_deliveries, undated, unsampled
 from culmbin.store.gradings import list_gradings, ungraded
@@ -136,7 +136,10 @@ def rejection_page(book: Book, window: Window) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["nothing went back."],
+            note(
+                "nothing went back.",
+                when=not rows,
+            ),
         ]
     )
 
@@ -178,6 +181,9 @@ def grower_page(book: Book, party: str, window: Window) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["nothing was delivered."],
+            note(
+                "nothing was delivered.",
+                when=not rows,
+            ),
         ]
     )

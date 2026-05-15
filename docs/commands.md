@@ -352,6 +352,14 @@ List the lots, or print the stock page when nothing is asked for.
 | `--variety` |  | lots that can be SOLD as this variety. |
 | `--uncertified` |  | only the ones the laboratory still owes. |
 
+## `culmbin lot load PATH`
+
+Load a batch of laboratory results out of a file.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--note` |  | anything the laboratory wrote alongside. |
+
 ## `culmbin lot seal CODE`
 
 Take a lot off a sealed bin.

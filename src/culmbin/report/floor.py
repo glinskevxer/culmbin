@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from culmbin.model.enums import PieceStage, VesselKind
 from culmbin.process.floor import FloorLine, floor_sheet
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.store.book import Book
 from culmbin.store.pieces import in_vessel, list_pieces
 from culmbin.store.vessels import list_vessels
@@ -71,7 +71,10 @@ def shift_sheet(book: Book, at_celsius: float = 16.0) -> str:
             table_block("turns owed", columns, [_line_row(line) for line in owed]),
             table_block("ready to cast", columns, [_line_row(line) for line in ready]),
             table_block("running", columns, [_line_row(line) for line in quiet]),
-            [] if lines else ["nothing is on the floor."],
+            note(
+                "nothing is on the floor.",
+                when=not lines,
+            ),
         ]
     )
 

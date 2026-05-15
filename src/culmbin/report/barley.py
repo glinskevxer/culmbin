@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from culmbin.model.enums import Basis
-from culmbin.report.layout import Align, Column, heading, page, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, table_block
 from culmbin.store.analyses import get_analysis
 from culmbin.store.book import Book
 from culmbin.store.deliveries import list_deliveries
@@ -109,12 +109,14 @@ def barley_page(book: Book, window: Window) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["nobody delivered anything."],
-            [
+            note(
+                "nobody delivered anything.",
+                when=not rows,
+            ),
+            note(
                 "every mean is over accepted loads and weighted by settled tonnes.",
                 "a rejected load has no settled weight, so it is counted and not averaged.",
-            ]
-            if rows
-            else [],
+                when=bool(rows),
+            ),
         ]
     )

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from tests.cli.conftest import Invoke
 
 MALT = (
@@ -285,3 +287,35 @@ def test_cleaning_a_bin_clears_the_mark(invoke: Invoke) -> None:
     invoke("bin", "issue", "B04", "--tonnes", "60")
     result = invoke("bin", "clean", "B04")
     assert "cleared" in result.output
+
+
+def test_a_batch_of_results_loads_out_of_a_file(invoke: Invoke, tmp_path: Path) -> None:
+    plant(invoke)
+    path = tmp_path / "lab.csv"
+    path.write_text(
+        "reference,material,taken,code,value\n"
+        "M-1,malt,2025-11-12,malt_moisture,4.2\n"
+        "M-1,malt,2025-11-12,colour,3.4\n"
+        "M-2,malt,2025-11-12,malt_moisture,4.4\n",
+        encoding="utf-8",
+    )
+    result = invoke("lot", "load", str(path))
+    assert result.exit_code == 0
+    assert "2 analyses loaded" in result.output
+
+
+def test_a_file_with_a_bad_line_loads_nothing(invoke: Invoke, tmp_path: Path) -> None:
+    plant(invoke)
+    path = tmp_path / "lab.csv"
+    path.write_text(
+        "reference,material,taken,code,value\n"
+        "M-1,malt,2025-11-12,malt_moisture,4.2\n"
+        "M-2,malt,2025-11-12,colour,dark\n",
+        encoding="utf-8",
+    )
+    assert invoke("lot", "load", str(path)).exit_code != 0
+    assert "nothing in the book is called" in invoke("find", "M-1").output
+
+
+def test_a_file_that_is_not_there_is_a_usage_error(invoke: Invoke, tmp_path: Path) -> None:
+    assert invoke("lot", "load", str(tmp_path / "nothing.csv")).exit_code == 2

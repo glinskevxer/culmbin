@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.store.book import Book
 from culmbin.store.cleaning import cleanings, interval_for, policed, standing
 from culmbin.store.vessels import list_vessels
@@ -80,7 +80,10 @@ def cleaning_page(book: Book, on: dt.date) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["there is no plant."],
+            note(
+                "there is no plant.",
+                when=not rows,
+            ),
         ]
     )
 

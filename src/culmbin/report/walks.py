@@ -15,7 +15,7 @@ walk that found nothing, and on this page those two have to be told apart.
 
 from __future__ import annotations
 
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.store.book import Book
 from culmbin.store.deliveries import get_delivery
 from culmbin.store.lots import get_lot
@@ -76,7 +76,10 @@ def recall_page(book: Book, ticket: str) -> str:
                 [Column("piece"), Column("bins")],
                 [[piece, ", ".join(walk.bins)] for piece in walk.pieces],
             ),
-            ["none of this barley has left the site."] if walk.still_ours else [],
+            note(
+                "none of this barley has left the site.",
+                when=walk.still_ours,
+            ),
         ]
     )
 
@@ -122,8 +125,9 @@ def investigation_page(book: Book, shipment: str) -> str:
                 ],
                 rows,
             ),
-            []
-            if walk.complete
-            else ["this walk is incomplete: no lorry loads are recorded against these pieces."],
+            note(
+                "this walk is incomplete: no lorry loads are recorded against these pieces.",
+                when=not walk.complete,
+            ),
         ]
     )

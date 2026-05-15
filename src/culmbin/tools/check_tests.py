@@ -36,13 +36,16 @@ NO_TEST_NEEDED = frozenset(
 SUPPORT = frozenset({"tests.support", "tests.conftest"})
 """Test helpers, which are not tests and do not test anything."""
 
-CROSS_CUTTING = frozenset({"test_calendar.py"})
+CROSS_CUTTING = frozenset({"test_calendar.py", "test_layout_notes.py"})
 """Test modules that are about the package rather than about one module.
 
 `test_calendar.py` sweeps the clock across three years and asks every rule
 that takes a day. There is no `calendar.py` for it to be paired with and
 there should not be: the point of it is that the rules are spread over a
 dozen modules and none of them may move with the date.
+
+`test_layout_notes.py` is about one function in `report.layout` and the ten
+pages that use it, which is why it does not live in `test_layout.py`.
 """
 
 

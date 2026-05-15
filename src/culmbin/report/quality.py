@@ -14,7 +14,7 @@ from __future__ import annotations
 import datetime as dt
 
 from culmbin.model.complaint import Complaint
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.store.book import Book
 from culmbin.store.complaints import (
     count_by_kind,
@@ -81,6 +81,9 @@ def quality_page(book: Book, window: Window, on: dt.date) -> str:
                 [[str(kind), str(total)] for kind, total in counts.items()],
             ),
             table_block("everything raised", COLUMNS, [_row(item, on) for item in raised]),
-            [] if raised else ["nobody has complained."],
+            note(
+                "nobody has complained.",
+                when=not raised,
+            ),
         ]
     )

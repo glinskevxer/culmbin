@@ -14,7 +14,7 @@ from __future__ import annotations
 import datetime as dt
 
 from culmbin.model.enums import ContractState
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.sales.cover import contracts_a_lot_could_serve, cover, orphan_lots
 from culmbin.sales.desk import availability
 from culmbin.store.book import Book
@@ -72,7 +72,10 @@ def contract_page(book: Book, customer: str | None = None) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["there are no signed contracts."],
+            note(
+                "there are no signed contracts.",
+                when=not rows,
+            ),
         ]
     )
 
@@ -107,7 +110,10 @@ def call_page(book: Book, window: Window) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["nothing has been called off."],
+            note(
+                "nothing has been called off.",
+                when=not rows,
+            ),
         ]
     )
 
@@ -147,7 +153,10 @@ def diary_page(book: Book, start: dt.date, end: dt.date) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["the diary is empty."],
+            note(
+                "the diary is empty.",
+                when=not rows,
+            ),
         ]
     )
 
@@ -189,7 +198,10 @@ def cover_page(book: Book) -> str:
                     ("short with the floor", f"{where.short_by_with_the_floor:.2f}"),
                 ]
             ),
-            ["everything signed could be served out of the bins today."] if where.covered else [],
+            note(
+                "everything signed could be served out of the bins today.",
+                when=where.covered,
+            ),
             table_block(
                 "lots nothing can take",
                 [Column("lot"), Column("variety"), Column("free", Align.RIGHT)],
@@ -206,6 +218,9 @@ def cover_page(book: Book) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["there is no certified malt with anything left on it."],
+            note(
+                "there is no certified malt with anything left on it.",
+                when=not rows,
+            ),
         ]
     )

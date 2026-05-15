@@ -13,7 +13,7 @@ stock at all.
 from __future__ import annotations
 
 from culmbin.model.enums import BinState
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.sales.desk import availability
 from culmbin.store.bins import contents_of, list_bins
 from culmbin.store.book import Book
@@ -63,7 +63,10 @@ def stock_page(book: Book) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["there is no malt in stock."],
+            note(
+                "there is no malt in stock.",
+                when=not rows,
+            ),
         ]
     )
 
@@ -116,7 +119,10 @@ def bin_page(book: Book) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["there are no bins."],
+            note(
+                "there are no bins.",
+                when=not rows,
+            ),
         ]
     )
 
@@ -153,6 +159,9 @@ def laboratory_page(book: Book) -> str:
                 ],
                 rows,
             ),
-            [] if rows else ["every lot has a certificate."],
+            note(
+                "every lot has a certificate.",
+                when=not rows,
+            ),
         ]
     )

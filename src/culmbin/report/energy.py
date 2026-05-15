@@ -14,7 +14,7 @@ moved further than a year of real work.
 from __future__ import annotations
 
 from culmbin.process.energy import KilnEnergy
-from culmbin.report.layout import Align, Column, heading, page, pairs, table_block
+from culmbin.report.layout import Align, Column, heading, note, page, pairs, table_block
 from culmbin.store.book import Book
 from culmbin.store.energy import kiln_of, list_runs, unmetered
 from culmbin.units.season import Window
@@ -71,12 +71,11 @@ def energy_page(book: Book, window: Window) -> str:
             ),
             table_block("runs", columns, [_row(book, run) for run in runs]),
             ["nobody metered anything."] if not runs else [],
-            [
+            note(
                 "efficiency is the number to compare. kWh a tonne carries the cast",
                 "moisture with it, so a wet month reads worse without anything",
                 "having got worse.",
-            ]
-            if runs
-            else [],
+                when=bool(runs),
+            ),
         ]
     )
