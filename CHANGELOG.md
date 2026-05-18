@@ -4,6 +4,17 @@ Everything that changed, newest first. A version is cut when the schema
 changes or when something the office relies on changes shape, and not on a
 timetable.
 
+## 0.4.0
+
+Schema version 21. One table, for the water meter.
+
+- Steep water. What went over the barley, what the barley kept, and what
+  went to drain, which are three numbers and only the last one is what the
+  effluent bill is on.
+- A piece can be metered as soon as it is cast, because the split into kept
+  and drained needs the steep-out moisture and nothing else. The figure per
+  tonne of malt waits for a malt weight.
+
 ## 0.3.0
 
 Schema version 20. One migration, and it is indexes only: no table changes

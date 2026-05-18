@@ -650,6 +650,18 @@ CREATE INDEX shipment_by_haulier ON shipment (haulier);
 CREATE INDEX shipment_by_call ON shipment (call_off);
 """
 
+_WATER = """
+CREATE TABLE steep_water (
+    piece      TEXT PRIMARY KEY REFERENCES piece (code) ON DELETE CASCADE,
+    metered_m3 REAL NOT NULL,
+    on_day     TEXT NOT NULL,
+    note       TEXT NOT NULL DEFAULT '',
+    CHECK (metered_m3 >= 0.0)
+);
+
+CREATE INDEX steep_water_by_day ON steep_water (on_day, piece);
+"""
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(1, "the version table itself", _META),
     Migration(2, "parties, varieties and vessels", _REGISTERS),
@@ -671,6 +683,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     Migration(18, "when a vessel was last cleaned and how often it should be", _CLEANING),
     Migration(19, "an append only journal of what was done and by whom", _JOURNAL),
     Migration(20, "an index on every column a foreign key points from", _POINTING_INDEXES),
+    Migration(21, "what the water meter read across a steep", _WATER),
 )
 """Every migration this package knows about, in the order they are applied.
 

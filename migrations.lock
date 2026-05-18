@@ -22,3 +22,4 @@
  18  1bd756649ca8da7e  when a vessel was last cleaned and how often it should be
  19  6e8123f568e872c6  an append only journal of what was done and by whom
  20  474019a40a84a9b4  an index on every column a foreign key points from
+ 21  82f22b2c0d9317a5  what the water meter read across a steep
