@@ -715,6 +715,15 @@ The grower's statement, with every deduction as a line of its own.
 
 Every lot, with what is free on it.
 
+## `culmbin report water`
+
+Every steep metered, and what went to drain.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
+
 ## `culmbin report yard`
 
 What is in the silos and what is still in the intake pit.
@@ -960,3 +969,33 @@ Take a vessel out of service from today.
 ## `culmbin vessel show CODE`
 
 Say everything about one vessel, including what it holds at a depth.
+
+## `culmbin water`
+
+What the water meter read across a steep.
+
+## `culmbin water list`
+
+Print the water page.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--to` |  | the last day. Defaults to the day being worked as. |
+| `--from` |  | the first day. Defaults to the first of the month. |
+
+## `culmbin water record PIECE`
+
+Write down what the water meter read across one steep.
+
+| option | required | what it is for |
+| --- | --- | --- |
+| `--m3` | yes | cubic metres off the meter. |
+| `--note` |  | anything worth writing down. |
+
+## `culmbin water show PIECE`
+
+Say everything about one steep's water.
+
+## `culmbin water waiting`
+
+Every cast piece with no water reading against it.

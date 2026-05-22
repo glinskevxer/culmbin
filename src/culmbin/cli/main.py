@@ -35,6 +35,7 @@ from culmbin.cli.quality import complaint
 from culmbin.cli.registers import party, variety, vessel
 from culmbin.cli.sales import call, contract, ship
 from culmbin.cli.tools import doctor, export, find, migrations, registers, version
+from culmbin.cli.water import water
 from culmbin.cli.yard import silo
 from culmbin.errors import CulmbinError
 from culmbin.store.book import Book
@@ -142,6 +143,7 @@ cli.add_command(registers)
 cli.add_command(report)
 cli.add_command(ship)
 cli.add_command(version)
+cli.add_command(water)
 cli.add_command(silo)
 cli.add_command(spec)
 cli.add_command(trace)

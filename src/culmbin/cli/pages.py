@@ -30,6 +30,7 @@ from culmbin.report.sales import call_page, contract_page, cover_page
 from culmbin.report.statement import statement_page
 from culmbin.report.stock import bin_page, laboratory_page, stock_page
 from culmbin.report.walks import investigation_page, recall_page
+from culmbin.report.water import water_page
 from culmbin.report.yard import yard_page
 
 
@@ -133,6 +134,14 @@ def report_cover(context: Context) -> None:
 def report_gas(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
     """Every kiln run, with the ones outside the band at the top."""
     click.echo(energy_page(context.book(), window_for(context, opens, closes)), nl=False)
+
+
+@report.command("water")
+@window_options
+@pass_context
+def report_water(context: Context, opens: dt.datetime | None, closes: dt.datetime | None) -> None:
+    """Every steep metered, and what went to drain."""
+    click.echo(water_page(context.book(), window_for(context, opens, closes)), nl=False)
 
 
 @report.command("yard")

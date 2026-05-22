@@ -182,6 +182,11 @@ jobs:
           culmbin --book "$book" --on 2026-04-30 report calls
           culmbin --book "$book" find L-1
           culmbin --book "$book" registers
+          culmbin --book "$book" --on 2025-11-05 water record 2025-118 --m3 150
+          culmbin --book "$book" water show 2025-118
+          culmbin --book "$book" --on 2025-11-30 report water
+          culmbin --book "$book" --on 2025-11-30 report barley
+          culmbin --book "$book" --on 2025-11-30 report statement HOLB
           culmbin --book "$book" doctor
           culmbin --book "$book" journal list --from 2025-01-01 --to 2026-12-31
           culmbin --book "$book" report month --from 2025-11-01 --to 2025-11-30

@@ -17,6 +17,7 @@ from culmbin.report.layout import Align, Column, heading, page, table_block
 from culmbin.store.book import Book
 from culmbin.store.energy import gas_used
 from culmbin.store.shipments import list_shipments
+from culmbin.store.water import metered, to_drain
 from culmbin.units.mass import dry_matter
 from culmbin.units.season import Window
 
@@ -45,6 +46,8 @@ def month_page(book: Book, window: Window) -> str:
         ["yield", f"{walk.yield_percent:.2f}%"],
         ["culm as a share of the loss", f"{walk.culm_share:.2f}"],
         ["gas burnt", f"{gas_used(book, window.start, window.end):.0f} m3"],
+        ["water metered", f"{metered(book, window.start, window.end):.0f} m3"],
+        ["water to drain", f"{to_drain(book, window.start, window.end):.0f} m3"],
     ]
     gaps = [["barley in the pit", f"{walk.pit_gap:.2f}"]]
     if abs(gap) > 0.01:
