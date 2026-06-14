@@ -58,6 +58,11 @@ about malt, which is what makes every page above it testable.
 **`cli`** is where the clock enters the package, and the only place. That is
 checked too, in `culmbin.tools.check_clock`.
 
+**`tools`** is the self-checks and the three document generators. Every
+check reads the source tree with `ast` rather than importing it, because a
+module that fails to import is exactly the module worth reporting on. CI
+runs every one of them, and `culmbin.tools.check_workflow` is what says so.
+
 ## The rules that decide what other rules measure
 
 These are the reason the package is not a set of tables with forms over it.

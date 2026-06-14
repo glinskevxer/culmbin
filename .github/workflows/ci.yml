@@ -37,6 +37,7 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e ".[dev]" -c constraints.txt
       - run: python -m culmbin.tools.check_clock
+      - run: python -m culmbin.tools.check_design
       - run: python -m culmbin.tools.check_docstrings
       - run: python -m culmbin.tools.check_exports
       - run: python -m culmbin.tools.check_help
