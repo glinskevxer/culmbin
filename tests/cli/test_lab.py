@@ -5,67 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from tests.cli.conftest import Invoke
-
-MALT = (
-    "--result",
-    "malt_moisture=4.2",
-    "--result",
-    "extract_fine=81.4",
-    "--result",
-    "colour=3.4",
-)
-
-
-def plant(invoke: Invoke) -> None:
-    invoke("variety", "add", "LAUR", "Laureate", "--approval", "approved", on="2018-12-01")
-    invoke("variety", "add", "DIAB", "Diablo", "--approval", "approved", on="2019-12-01")
-    invoke("vessel", "add", "S1", "steep 1", "--kind", "steep", "--charge", "45", on="1998-04-01")
-    invoke(
-        "vessel",
-        "add",
-        "G1",
-        "box 1",
-        "--kind",
-        "box",
-        "--area",
-        "170",
-        "--depth",
-        "90",
-        on="1998-04-01",
-    )
-    invoke(
-        "vessel",
-        "add",
-        "K1",
-        "kiln 1",
-        "--kind",
-        "kiln",
-        "--area",
-        "140",
-        "--depth",
-        "100",
-        on="1998-04-01",
-    )
-    invoke(
-        "recipe", "programme", "p", "--style", "pale_ale", "--leg", "wet:8:14", "--target", "44.5"
-    )
-    invoke("recipe", "schedule", "s", "--style", "pale_ale", "--target", "1200")
-    invoke(
-        "recipe",
-        "curve",
-        "c",
-        "--style",
-        "pale_ale",
-        "--step",
-        "dry:10:60",
-        "--step",
-        "cure:4:85",
-        "--target",
-        "4.2",
-    )
+from tests.cli.setup import MALT_RESULTS as MALT
+from tests.cli.setup import a_variety, the_plant
 
 
 def a_piece(invoke: Invoke, code: str, variety: str = "LAUR", steep: str = "S1") -> None:
+    """A piece charged in, sharing a steep so several can be made at once."""
     invoke(
         "piece",
         "charge",
@@ -129,7 +74,8 @@ def test_a_specification_can_be_copied_forward(invoke: Invoke) -> None:
 
 
 def test_a_bin_takes_malt_and_says_what_it_holds(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     invoke("bin", "add", "B04", "--capacity", "220")
     result = invoke("bin", "receive", "B04", "2025-118", "--tonnes", "30", "--moisture", "4.2")
@@ -137,7 +83,8 @@ def test_a_bin_takes_malt_and_says_what_it_holds(invoke: Invoke) -> None:
 
 
 def test_a_second_variety_marks_the_bin(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118", "LAUR")
     a_piece(invoke, "2025-120", "DIAB")
     invoke("bin", "add", "B04", "--capacity", "220")
@@ -147,7 +94,8 @@ def test_a_second_variety_marks_the_bin(invoke: Invoke) -> None:
 
 
 def test_a_lot_off_a_mixed_bin_declares_no_variety(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118", "LAUR")
     a_piece(invoke, "2025-120", "DIAB")
     a_lot(invoke, "L-MIXED", "B04", "2025-118", "2025-120")
@@ -156,7 +104,8 @@ def test_a_lot_off_a_mixed_bin_declares_no_variety(invoke: Invoke) -> None:
 
 
 def test_a_clean_lot_declares_its_variety(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-CLEAN", "B04", "2025-118")
     assert "LAUR" in invoke("lot", "seal", "L-2", "--bin", "B04").output or True
@@ -164,7 +113,8 @@ def test_a_clean_lot_declares_its_variety(invoke: Invoke) -> None:
 
 
 def test_a_lot_off_a_filling_bin_is_refused(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     invoke("bin", "add", "B04", "--capacity", "220")
     invoke("bin", "receive", "B04", "2025-118", "--tonnes", "30", "--moisture", "4.2")
@@ -172,14 +122,16 @@ def test_a_lot_off_a_filling_bin_is_refused(invoke: Invoke) -> None:
 
 
 def test_an_uncertified_lot_is_on_the_laboratory_list(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-1", "B04", "2025-118")
     assert "L-1" in invoke("lot", "list", "--uncertified").output
 
 
 def test_certifying_writes_the_certificate(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-1", "B04", "2025-118")
     invoke("lot", "certify", "L-1", "M-1", *MALT, on="2025-11-13")
@@ -189,7 +141,8 @@ def test_certifying_writes_the_certificate(invoke: Invoke) -> None:
 
 
 def test_a_certificate_can_be_assessed_against_a_specification(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-1", "B04", "2025-118")
     invoke("lot", "certify", "L-1", "M-1", *MALT, on="2025-11-13")
@@ -199,7 +152,8 @@ def test_a_certificate_can_be_assessed_against_a_specification(invoke: Invoke) -
 
 
 def test_a_lot_outside_the_specification_says_so(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-1", "B04", "2025-118")
     invoke("lot", "certify", "L-1", "M-1", *MALT, on="2025-11-13")
@@ -209,7 +163,8 @@ def test_a_lot_outside_the_specification_says_so(invoke: Invoke) -> None:
 
 
 def test_a_blend_says_what_it_would_assay(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_piece(invoke, "2025-119")
     a_lot(invoke, "L-1", "B04", "2025-118")
@@ -235,7 +190,8 @@ def test_a_blend_says_what_it_would_assay(invoke: Invoke) -> None:
 
 
 def test_a_blend_is_assessed_against_a_specification(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-1", "B04", "2025-118")
     invoke("lot", "certify", "L-1", "M-1", *MALT, on="2025-11-13")
@@ -245,7 +201,8 @@ def test_a_blend_is_assessed_against_a_specification(invoke: Invoke) -> None:
 
 
 def test_a_blend_that_misses_says_which_clause(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-1", "B04", "2025-118")
     invoke("lot", "certify", "L-1", "M-1", *MALT, on="2025-11-13")
@@ -256,7 +213,8 @@ def test_a_blend_that_misses_says_which_clause(invoke: Invoke) -> None:
 
 
 def test_a_blend_of_an_uncertified_lot_is_refused(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-1", "B04", "2025-118")
     result = invoke("blend", "--draw", "L-1:20")
@@ -264,20 +222,23 @@ def test_a_blend_of_an_uncertified_lot_is_refused(invoke: Invoke) -> None:
 
 
 def test_a_draw_that_is_not_one_is_refused(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     result = invoke("blend", "--draw", "L-1")
     assert result.exit_code != 0
 
 
 def test_the_bin_list_prints_the_bin_page(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118")
     a_lot(invoke, "L-1", "B04", "2025-118")
     assert "malt bins" in invoke("bin", "list").output
 
 
 def test_cleaning_a_bin_clears_the_mark(invoke: Invoke) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     a_piece(invoke, "2025-118", "LAUR")
     a_piece(invoke, "2025-120", "DIAB")
     invoke("bin", "add", "B04", "--capacity", "220")
@@ -290,7 +251,8 @@ def test_cleaning_a_bin_clears_the_mark(invoke: Invoke) -> None:
 
 
 def test_a_batch_of_results_loads_out_of_a_file(invoke: Invoke, tmp_path: Path) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     path = tmp_path / "lab.csv"
     path.write_text(
         "reference,material,taken,code,value\n"
@@ -305,7 +267,8 @@ def test_a_batch_of_results_loads_out_of_a_file(invoke: Invoke, tmp_path: Path) 
 
 
 def test_a_file_with_a_bad_line_loads_nothing(invoke: Invoke, tmp_path: Path) -> None:
-    plant(invoke)
+    the_plant(invoke)
+    a_variety(invoke, "DIAB", "Diablo")
     path = tmp_path / "lab.csv"
     path.write_text(
         "reference,material,taken,code,value\n"

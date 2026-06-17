@@ -6,6 +6,7 @@ from tests.cli.conftest import Invoke
 
 
 def plant(invoke: Invoke) -> None:
+    """A cleaner and one steep, which is all the cleaning book needs."""
     invoke("party", "add", "DKEHOE", "D Kehoe", "--role", "haulier", on="2011-06-01")
     invoke("vessel", "add", "S1", "steep 1", "--kind", "steep", "--charge", "45", on="1998-04-01")
 

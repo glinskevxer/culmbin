@@ -33,7 +33,7 @@ NO_TEST_NEEDED = frozenset(
 )
 """Package `__init__` modules, which hold a docstring and re-exports."""
 
-SUPPORT = frozenset({"tests.support", "tests.conftest"})
+SUPPORT = frozenset({"tests.support", "tests.conftest", "tests.cli.setup"})
 """Test helpers, which are not tests and do not test anything."""
 
 CROSS_CUTTING = frozenset({"test_calendar.py", "test_layout_notes.py", "test_invariants.py"})
