@@ -34,14 +34,24 @@ def test_a_finding_prints_as_a_line() -> None:
     assert str(Finding("lot", "L-1 has no analysis")) == "lot: L-1 has no analysis"
 
 
-def test_a_shipment_against_an_unsigned_contract_is_a_fault(desk: Book) -> None:
+def test_a_despatched_load_against_a_closed_contract_is_not_a_fault(desk: Book) -> None:
+    """That is what a contract that has been served out and closed looks like."""
+    desk.execute(
+        "INSERT INTO shipment (code, contract, lot, tonnes, moisture, despatched, state) "
+        "VALUES ('S-1', 'C-2025-031', 'L-CLEAN', 28.0, 4.2, '2025-11-20', 'despatched')"
+    )
+    desk.execute("UPDATE contract SET state = 'closed' WHERE code = 'C-2025-031'")
+    assert sound(desk)
+
+
+def test_a_load_still_waiting_against_an_unsigned_contract_is_a_fault(desk: Book) -> None:
     desk.execute(
         "INSERT INTO shipment (code, contract, lot, tonnes, moisture, despatched, state) "
         "VALUES ('S-1', 'C-2025-031', 'L-CLEAN', 28.0, 4.2, '2025-11-20', 'planned')"
     )
     desk.execute("UPDATE contract SET state = 'closed' WHERE code = 'C-2025-031'")
     found = crossing_rules(desk)
-    assert any("which is not signed" in item.detail for item in found)
+    assert any("waiting to go against" in item.detail for item in found)
     assert not sound(desk)
 
 

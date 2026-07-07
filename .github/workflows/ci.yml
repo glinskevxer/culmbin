@@ -51,6 +51,7 @@ jobs:
       - run: python -m culmbin.tools.check_tests
       - run: python -m culmbin.tools.check_wiring
       - run: python -m culmbin.tools.check_package
+      - run: python -m culmbin.tools.check_walk
       - run: python -m culmbin.tools.check_workflow
       - run: python -m culmbin.tools.release_check
       - run: python -m culmbin.tools.schema_dump --check
@@ -91,6 +92,7 @@ jobs:
           set -euo pipefail
           book=/tmp/walk.sqlite3
           rm -f "$book"
+          rm -rf /tmp/walk-csv /tmp/walk-backup.sqlite3
           culmbin --book "$book" init
           culmbin --book "$book" --on 2011-06-01 party add HOLB "Holbeach Grange" \
             --role grower --holding 12/345
@@ -112,7 +114,13 @@ jobs:
           culmbin --book "$book" delivery settle W-1
           culmbin --book "$book" delivery waiting
           culmbin --book "$book" delivery list
+          culmbin --book "$book" party list --role grower
+          culmbin --book "$book" variety show LAUR
           culmbin --book "$book" purchase show P-1
+          culmbin --book "$book" silo add SL1 --capacity 400
+          culmbin --book "$book" --on 2025-09-19 silo tip SL1 W-1
+          culmbin --book "$book" silo show SL1
+          culmbin --book "$book" silo list
           culmbin --book "$book" --on 1998-04-01 vessel add S1 "steep 1" --kind steep --charge 45
           culmbin --book "$book" --on 1998-04-01 vessel add G1 "box 1" --kind box \
             --area 170 --depth 90
@@ -131,6 +139,17 @@ jobs:
             --crop 2025 --style pale_ale --steep S1 --tonnes 45 --moisture 12 \
             --programme "pale two stand" --schedule "pale four day" --curve "pale 18 hour"
           culmbin --book "$book" piece source 2025-118 W-1 --tonnes 28
+          culmbin --book "$book" --on 2025-09-18 delivery add W-2 P-1 --party HOLB \
+            --gross 43820 --tare 15640
+          culmbin --book "$book" delivery harvest W-2 2025-08-14
+          culmbin --book "$book" --on 2025-09-19 delivery sample W-2 B-2 \
+            --result moisture=12.5 --result screenings=1.4 --result germ_capacity=99.0 \
+            --result germ_energy=98.0 --result admixture=0.4 --result nitrogen=1.62
+          culmbin --book "$book" --on 2025-09-19 delivery grade W-2
+          culmbin --book "$book" --on 2025-09-19 silo tip SL1 W-2
+          culmbin --book "$book" --on 2025-11-03 silo draw SL1 2025-119 --tonnes 20 \
+            --variety LAUR --crop 2025 --style pale_ale --steep S1 --share \
+            --programme "pale two stand" --schedule "pale four day" --curve "pale 18 hour"
           culmbin --book "$book" piece reading 2025-118 --stage steeping --hours 48 --celsius 14
           culmbin --book "$book" --on 2025-11-05 piece cast 2025-118 --into G1 \
             --tonnes 71.8 --moisture 44.8 --depth 85
@@ -149,6 +168,8 @@ jobs:
           culmbin --book "$book" --on 2025-11-13 lot seal L-1 --bin B04
           culmbin --book "$book" --on 2025-11-13 lot certify L-1 M-1 \
             --result malt_moisture=4.4 --result extract_fine=81.4 --result colour=3.4
+          culmbin --book "$book" --on 2025-11-13 bin issue B04 --tonnes 0.5 \
+            --note "sample to the laboratory"
           culmbin --book "$book" spec add "lager 2025" --clause "extract_fine>=80.5" \
             --clause "colour=2.5..4.5"
           culmbin --book "$book" spec show "lager 2025"
@@ -158,6 +179,9 @@ jobs:
           culmbin --book "$book" --on 2025-06-02 contract add C-1 BRWY --spec "lager 2025" \
             --tonnes 2400 --price 398.00 --from 2025-10-01 --to 2026-09-30
           culmbin --book "$book" contract sign C-1
+          culmbin --book "$book" contract list
+          culmbin --book "$book" contract cover
+          culmbin --book "$book" spec list
           culmbin --book "$book" --on 2025-11-20 call add K-1 C-1 --tonnes 200 \
             --from 2026-04-06 --to 2026-04-10
           culmbin --book "$book" call list
@@ -188,6 +212,15 @@ jobs:
           culmbin --book "$book" --on 2025-11-30 report water
           culmbin --book "$book" --on 2025-11-30 report barley
           culmbin --book "$book" --on 2025-11-30 report statement HOLB
+          culmbin --book "$book" --on 2026-01-14 --by jhollis complaint raise Q-1 BRWY \
+            "two EBC darker than the certificate" --about colour --shipment S-1
+          culmbin --book "$book" --on 2026-01-14 complaint show Q-1
+          culmbin --book "$book" --on 2026-01-31 report complaints
+          culmbin --book "$book" report yard
+          culmbin --book "$book" report cleaning
+          culmbin --book "$book" --on 2025-11-30 report gas
+          culmbin --book "$book" contract close C-1
+          culmbin --book "$book" version
           culmbin --book "$book" doctor
           culmbin --book "$book" journal list --from 2025-01-01 --to 2026-12-31
           culmbin --book "$book" report month --from 2025-11-01 --to 2025-11-30

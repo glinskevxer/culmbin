@@ -12,6 +12,12 @@ If either of these says anything, nothing below it is worth reading.
 **What the schema could not say.** A CHECK constraint sees one row. Half the
 rules in this package are about two tables at once, and those are here.
 
+One of these was wrong for a fortnight and the walk in CI found it. It read
+every shipment against an unsigned contract as a fault, and a contract that
+has been served out and closed with despatched loads against it is not a
+fault, it is what a finished contract looks like. Only a load still waiting
+to go is one.
+
 **What is merely odd.** A lot bigger than the bin it came out of is not
 impossible, because the bin has been drawn since. It is worth a look and it
 is not a fault, so it is reported separately and does not fail the command.
@@ -75,9 +81,9 @@ def crossing_rules(book: Book) -> list[Finding]:
     found += _rows(
         book,
         "shipment",
-        "{code} is against {contract}, which is not signed",
+        "{code} is waiting to go against {contract}, which is not signed",
         "SELECT s.code, s.contract FROM shipment s JOIN contract c ON c.code = s.contract "
-        "WHERE c.state != 'signed' AND s.state != 'cancelled'",
+        "WHERE c.state != 'signed' AND s.state IN ('planned', 'loaded')",
     )
     found += _rows(
         book,
