@@ -33,10 +33,43 @@ from culmbin.report.walks import investigation_page, recall_page
 from culmbin.report.water import water_page
 from culmbin.report.yard import yard_page
 
+PAGE_ORDER: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("barley coming in", ("intake", "rejections", "grower", "statement", "barley", "yard")),
+    ("the plant", ("floor", "process", "plant", "balance", "gas", "water", "cleaning")),
+    ("malt going out", ("stock", "bins", "laboratory", "contracts", "calls", "cover")),
+    ("the month, and what went wrong", ("month", "complaints")),
+)
+"""Every page, in the order the malthouse runs rather than alphabetically.
+
+`--help` sorts them, which is the order nobody wants: the intake page and
+the stock page end up next to each other and the two halves of the building
+are interleaved.
+"""
+
 
 @click.group()
 def report() -> None:
     """The pages somebody actually reads."""
+
+
+@report.command("list")
+@click.pass_context
+def report_list(context: click.Context) -> None:
+    """Every page there is, and the one line each of them is for.
+
+    There are more than twenty of them now, and `--help` prints them in
+    alphabetical order, which is the order nobody wants. This prints them in
+    the order the malthouse runs: barley in at the top, malt out at the
+    bottom, and the pages about the building itself after that.
+    """
+    group = context.parent.command if context.parent else None
+    assert isinstance(group, click.Group)
+    for order, names in PAGE_ORDER:
+        click.echo(order)
+        for name in names:
+            command = group.commands[name]
+            first = (command.help or "").strip().splitlines()[0]
+            click.echo(f"  {name:<12}{first}")
 
 
 @report.command("intake")

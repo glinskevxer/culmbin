@@ -216,6 +216,7 @@ jobs:
             "two EBC darker than the certificate" --about colour --shipment S-1
           culmbin --book "$book" --on 2026-01-14 complaint show Q-1
           culmbin --book "$book" --on 2026-01-31 report complaints
+          culmbin --book "$book" report list
           culmbin --book "$book" report yard
           culmbin --book "$book" report cleaning
           culmbin --book "$book" --on 2025-11-30 report gas

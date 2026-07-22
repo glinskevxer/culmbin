@@ -52,6 +52,10 @@ five things the building does. Each has a module of rules and, where the
 rules need several tables at once, a desk module that is the only thing
 above it anybody calls.
 
+`sales` may import from `process`, which is the one dependency between the
+five. Malt comes off the plant and is then sold, so the sales desk asking
+what is on the floor is asking a question of something below it.
+
 **`report`** turns records into pages. `culmbin.report.layout` knows nothing
 about malt, which is what makes every page above it testable.
 

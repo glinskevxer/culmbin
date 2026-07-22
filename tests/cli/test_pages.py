@@ -102,3 +102,41 @@ def test_the_barley_page_prints_on_an_empty_book(invoke: Invoke) -> None:
     result = invoke("report", "barley", on="2025-09-30")
     assert result.exit_code == 0
     assert "barley grading 2025-09-01..2025-09-30" in result.output
+
+
+def test_the_page_index_lists_every_page(invoke: Invoke) -> None:
+    """`--help` sorts them, which is the order nobody wants."""
+    from culmbin.cli.pages import PAGE_ORDER
+
+    result = invoke("report", "list")
+    assert result.exit_code == 0
+    for _, names in PAGE_ORDER:
+        for name in names:
+            assert name in result.output
+
+
+def test_the_page_index_runs_the_malthouse_in_order(invoke: Invoke) -> None:
+    result = invoke("report", "list")
+    lines = result.output.splitlines()
+    assert lines.index("barley coming in") < lines.index("the plant")
+    assert lines.index("the plant") < lines.index("malt going out")
+
+
+def test_every_page_in_the_index_is_a_real_page(invoke: Invoke) -> None:
+    from culmbin.cli.pages import PAGE_ORDER, report
+
+    listed = {name for _, names in PAGE_ORDER for name in names}
+    assert listed <= set(report.commands)
+
+
+def test_every_page_but_the_index_itself_is_in_it(invoke: Invoke) -> None:
+    """A page added and left out of the index is a page nobody finds."""
+    from culmbin.cli.pages import PAGE_ORDER, report
+
+    listed = {name for _, names in PAGE_ORDER for name in names}
+    assert set(report.commands) - listed == {"list"}
+
+
+def test_each_page_carries_its_first_line(invoke: Invoke) -> None:
+    result = invoke("report", "list")
+    assert "What came in, what is waiting" in result.output

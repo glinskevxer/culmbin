@@ -24,6 +24,12 @@ It is a command line tool over a SQLite file. No server and no web UI.
 - Malt bins with varietal segregation that propagates and does not recover.
 - Contracts drawn down in contract tonnes rather than weighbridge tonnes.
 - Traceability from a lorry load forward and from a shipment back.
+- The barley yard, the gas meter, the water meter, cleaning intervals,
+  customer complaints and an append-only journal of what was done and by
+  whom.
+
+There are more than twenty pages. `culmbin report list` prints them in the
+order the malthouse runs rather than in alphabetical order.
 
 ## Getting started
 
@@ -33,8 +39,9 @@ culmbin --book book.sqlite3 init
 culmbin --book book.sqlite3 status
 ```
 
-Every command takes `--book` and `--on`. The second one is the day the
+Every command takes `--book`, `--on` and `--by`. The second is the day the
 command is worked as, and it is the only place a clock enters the package.
+The third is who is at the keyboard, and it goes in the journal.
 
 ```
 culmbin --book book.sqlite3 --on 2025-09-18 delivery add W-1 P-1 --party HOLB \
@@ -72,7 +79,14 @@ to import is exactly the module worth reporting on.
 python -m culmbin.tools.check_layers
 python -m culmbin.tools.check_wiring
 python -m culmbin.tools.check_naming
+python -m culmbin.tools.check_indexes
+python -m culmbin.tools.check_migrations
 ```
+
+Two of them are about CI itself. `culmbin.tools.check_workflow` says that
+every command the walk in CI runs is a real one, and
+`culmbin.tools.check_walk` says that every real one is run by the walk or
+excused in writing.
 
 The three generated documents are regenerated and compared in CI, so they
 cannot go stale.

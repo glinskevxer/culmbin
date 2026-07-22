@@ -676,6 +676,10 @@ What came in, what is waiting, and what it settled at.
 
 Every sealed lot with no certificate against it.
 
+## `culmbin report list`
+
+Every page there is, and the one line each of them is for.
+
 ## `culmbin report month`
 
 One walk from the weighbridge to the loading bay, as a balance.
