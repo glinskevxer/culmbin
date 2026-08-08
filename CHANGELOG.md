@@ -4,6 +4,20 @@ Everything that changed, newest first. A version is cut when the schema
 changes or when something the office relies on changes shape, and not on a
 timetable.
 
+## 0.5.0
+
+Schema version 21, unchanged. Nothing in the book moved.
+
+- The walk that runs against the installed wheel goes the whole way now.
+  It used to stop at the intake settlement, which is one package out of
+  nine, and the ones it never reached are the ones with the arithmetic in
+  them. It now tips into a silo, charges a piece, casts it, kilns it, bins
+  it, seals and certifies a lot, allocates it against a contract, loads a
+  lorry and walks the shipment back to the grower it came from.
+- That is the difference between knowing a wheel imports and knowing a
+  wheel works. Two of the packages it now touches have no code at all in
+  the console script walk that CI runs beside it.
+
 ## 0.4.0
 
 Schema version 21. One table, for the water meter.
