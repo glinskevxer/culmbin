@@ -32,6 +32,7 @@ OUR_ERRORS = frozenset(
         "NotFoundError",
         "ConflictError",
         "StateError",
+        "BusyError",
         "SegregationError",
     }
 )

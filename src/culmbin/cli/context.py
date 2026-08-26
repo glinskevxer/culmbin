@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 import click
 
-from culmbin.store.book import Book
+from culmbin.store.book import WAIT_SECONDS, Book
 from culmbin.store.journal import UNKNOWN, record
 from culmbin.store.migrations import migrate
 
@@ -27,12 +27,13 @@ class Context:
     path: str
     on: dt.date
     actor: str = UNKNOWN
+    wait_seconds: float = WAIT_SECONDS
     _book: Book | None = None
 
     def book(self) -> Book:
         """Open the book, migrate it, and keep it for the rest of the command."""
         if self._book is None:
-            book = Book.open(self.path)
+            book = Book.open(self.path, self.wait_seconds)
             migrate(book, self.stamp)
             self._book = book
         return self._book
@@ -45,7 +46,7 @@ class Context:
         there was nothing to apply, which is true and useless.
         """
         if self._book is None:
-            self._book = Book.open(self.path)
+            self._book = Book.open(self.path, self.wait_seconds)
         return self._book
 
     def close(self) -> None:

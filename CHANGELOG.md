@@ -17,6 +17,14 @@ Schema version 21, unchanged. Nothing in the book moved.
 - That is the difference between knowing a wheel imports and knowing a
   wheel works. Two of the packages it now touches have no code at all in
   the console script walk that CI runs beside it.
+- Two clerks on one book over a share is the normal way this is run, and
+  SQLite lets one of them write at a time. The book now sets a busy timeout
+  as well as a connection timeout, waits five seconds by default, and turns
+  running out of patience into `BusyError` with the path in the message.
+  Before this the second clerk got a bare `OperationalError` saying
+  "database is locked", which reads like a bug in the software.
+- `--wait` on the command line, for the site that wants to sit out a long
+  settlement rather than come back later.
 
 ## 0.4.0
 

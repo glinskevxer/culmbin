@@ -39,9 +39,12 @@ culmbin --book book.sqlite3 init
 culmbin --book book.sqlite3 status
 ```
 
-Every command takes `--book`, `--on` and `--by`. The second is the day the
-command is worked as, and it is the only place a clock enters the package.
-The third is who is at the keyboard, and it goes in the journal.
+Every command takes `--book`, `--on`, `--by` and `--wait`. The second is the
+day the command is worked as, and it is the only place a clock enters the
+package. The third is who is at the keyboard, and it goes in the journal.
+The fourth is how long to sit behind whoever else is writing to the same
+file before giving up, which matters because the intake desk and the plant
+office normally have the same book open.
 
 ```
 culmbin --book book.sqlite3 --on 2025-09-18 delivery add W-1 P-1 --party HOLB \

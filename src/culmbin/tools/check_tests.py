@@ -36,7 +36,9 @@ NO_TEST_NEEDED = frozenset(
 SUPPORT = frozenset({"tests.support", "tests.conftest", "tests.cli.setup"})
 """Test helpers, which are not tests and do not test anything."""
 
-CROSS_CUTTING = frozenset({"test_calendar.py", "test_layout_notes.py", "test_invariants.py"})
+CROSS_CUTTING = frozenset(
+    {"test_calendar.py", "test_layout_notes.py", "test_invariants.py", "test_locking.py"}
+)
 """Test modules that are about the package rather than about one module.
 
 `test_calendar.py` sweeps the clock across three years and asks every rule
@@ -50,6 +52,12 @@ pages that use it, which is why it does not live in `test_layout.py`.
 `test_invariants.py` sweeps every conversion in `units` over its whole range
 and checks the properties rather than the numbers, so it pairs with all four
 modules and with none of them.
+
+`test_locking.py` is the only module that opens the same book twice. There
+is no `locking.py`, because there is nothing to put in one: the behaviour is
+two pragmas, a timeout and one translated exception, and where it lives is
+`store.book`. What it needs that `test_book.py` cannot give it is a second
+connection to a real file.
 """
 
 

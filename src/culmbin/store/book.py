@@ -15,6 +15,12 @@ have that failure in it.
 every time. A book opened without that pragma will happily delete a delivery
 that a piece is built out of.
 
+**Waiting for another writer is bounded, and running out of patience is
+one of our own exceptions.** SQLite allows one writer at a time. Two clerks
+on the same file over a share is the normal case here, not an exotic one, so
+the book waits, and what it does when the wait runs out is say so in a
+sentence rather than raise a bare `OperationalError` that reads like a bug.
+
 **Scripts are split and run statement by statement.** Python's
 `Connection.executescript` commits any open transaction before it starts.
 That is documented and it is still a trap, because it means a migration
@@ -32,12 +38,20 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any
 
-from culmbin.errors import ConflictError, NotFoundError, StateError
+from culmbin.errors import BusyError, ConflictError, NotFoundError, StateError
 
 Params = Sequence[Any] | Mapping[str, Any]
 
 MEMORY = ":memory:"
 """What to pass as a path for a book that is not on disk at all."""
+
+WAIT_SECONDS = 5.0
+"""How long to wait for another writer before giving up and saying so.
+
+Long enough to sit out somebody else's intake settlement, short enough that
+a clerk staring at a weighbridge knows within a few seconds that nothing is
+going to happen.
+"""
 
 
 class Book:
@@ -48,22 +62,34 @@ class Book:
     blamed on whichever test the collector happened to be running.
     """
 
-    def __init__(self, path: str, connection: sqlite3.Connection) -> None:
+    def __init__(
+        self, path: str, connection: sqlite3.Connection, wait_seconds: float = WAIT_SECONDS
+    ) -> None:
         self.path = path
+        self.wait_seconds = wait_seconds
         self._connection = connection
         self._closed = False
         self._depth = 0
 
     @classmethod
-    def open(cls, path: str | Path) -> Book:
-        """Open or create a book at a path, or in memory."""
+    def open(cls, path: str | Path, wait_seconds: float = WAIT_SECONDS) -> Book:
+        """Open or create a book at a path, or in memory.
+
+        `wait_seconds` is how long a statement sits behind another writer
+        before it gives up. It goes in twice on purpose: `timeout` covers
+        the waiting Python does around a statement it is running, and the
+        pragma covers the waiting SQLite does inside one.
+        """
+        if wait_seconds < 0:
+            raise StateError("a book cannot wait for less than no time")
         text = str(path)
-        connection = sqlite3.connect(text, isolation_level=None)
+        connection = sqlite3.connect(text, isolation_level=None, timeout=wait_seconds)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA journal_mode = WAL")
         connection.execute("PRAGMA synchronous = NORMAL")
-        return cls(text, connection)
+        connection.execute(f"PRAGMA busy_timeout = {int(wait_seconds * 1000)}")
+        return cls(text, connection, wait_seconds)
 
     @property
     def closed(self) -> bool:
@@ -104,6 +130,8 @@ class Book:
             return self._connection.execute(sql, params)
         except sqlite3.IntegrityError as exc:
             raise _translate(exc) from exc
+        except sqlite3.OperationalError as exc:
+            raise _translate_wait(exc, self.path) from exc
 
     def executemany(self, sql: str, rows: Sequence[Params]) -> sqlite3.Cursor:
         """Run one statement over many parameter sets."""
@@ -112,6 +140,8 @@ class Book:
             return self._connection.executemany(sql, rows)
         except sqlite3.IntegrityError as exc:
             raise _translate(exc) from exc
+        except sqlite3.OperationalError as exc:
+            raise _translate_wait(exc, self.path) from exc
 
     def executescript(self, sql: str) -> None:
         """Run a whole script, one statement at a time.
@@ -162,7 +192,10 @@ class Book:
             finally:
                 self._depth -= 1
             return
-        self._connection.execute("BEGIN IMMEDIATE")
+        try:
+            self._connection.execute("BEGIN IMMEDIATE")
+        except sqlite3.OperationalError as exc:
+            raise _translate_wait(exc, self.path) from exc
         self._depth = 1
         try:
             yield self
@@ -295,6 +328,21 @@ def _identifier(name: str) -> str:
     if not name.replace("_", "").isalnum():
         raise NotFoundError(f"{name!r} is not a table name")
     return name
+
+
+def _translate_wait(exc: sqlite3.OperationalError, path: str) -> Exception:
+    """Turn the lock messages into something an operator can act on.
+
+    Everything else SQLite calls an operational error is a mistake in a
+    statement, and re-labelling those as a busy book would hide real bugs,
+    so only the two lock messages are caught.
+    """
+    text = str(exc)
+    if "locked" in text or "busy" in text:
+        return BusyError(
+            f"something else is writing to {path} and did not finish in time. Try again."
+        )
+    return exc
 
 
 def _translate(exc: sqlite3.IntegrityError) -> Exception:

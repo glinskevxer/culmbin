@@ -38,7 +38,7 @@ from culmbin.cli.tools import doctor, export, find, migrations, registers, versi
 from culmbin.cli.water import water
 from culmbin.cli.yard import silo
 from culmbin.errors import CulmbinError
-from culmbin.store.book import Book
+from culmbin.store.book import WAIT_SECONDS, Book
 from culmbin.store.journal import UNKNOWN
 from culmbin.store.migrations import current_version, latest_version, migrate, pending
 
@@ -66,11 +66,27 @@ from culmbin.store.migrations import current_version, latest_version, migrate, p
     type=click.DateTime(formats=["%Y-%m-%d"]),
     help="the day to work as, for reports and records. Defaults to today.",
 )
+@click.option(
+    "--wait",
+    "wait_seconds",
+    default=WAIT_SECONDS,
+    show_default=True,
+    type=click.FloatRange(min=0.0),
+    help="seconds to wait for whoever else is writing to the book before giving up.",
+)
 @click.pass_context
-def cli(context: click.Context, book_path: Path, on: dt.datetime | None, actor: str | None) -> None:
+def cli(
+    context: click.Context,
+    book_path: Path,
+    on: dt.datetime | None,
+    actor: str | None,
+    wait_seconds: float,
+) -> None:
     """Record keeping for a malthouse."""
     day = dt.date.today() if on is None else on.date()  # noqa: DTZ011
-    context.obj = Context(path=str(book_path), on=day, actor=actor or UNKNOWN)
+    context.obj = Context(
+        path=str(book_path), on=day, actor=actor or UNKNOWN, wait_seconds=wait_seconds
+    )
     context.call_on_close(context.obj.close)
 
 
@@ -78,7 +94,7 @@ def cli(context: click.Context, book_path: Path, on: dt.datetime | None, actor: 
 @pass_context
 def init(context: Context) -> None:
     """Make a book, or bring an existing one up to date."""
-    book = Book.open(context.path)
+    book = Book.open(context.path, context.wait_seconds)
     try:
         before = current_version(book)
         applied = migrate(book, context.stamp)

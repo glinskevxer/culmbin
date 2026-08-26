@@ -50,5 +50,15 @@ class StateError(CulmbinError):
     """
 
 
+class BusyError(CulmbinError):
+    """Something else is writing to the same book and did not let go in time.
+
+    Two people on the intake desk share one file over a share, and SQLite
+    lets exactly one of them write at a time. Waiting is the right answer
+    and the book waits, but it has to give up eventually or the second
+    weighbridge just hangs with no message on it.
+    """
+
+
 class SegregationError(CulmbinError):
     """A movement would put two things together that must stay apart."""
